@@ -249,6 +249,70 @@
       pointer-events: none;
     }
     .map-toolbar span { color: #77868b; font-weight: 400; }
+    .map-legend {
+      position: absolute;
+      bottom: 18px;
+      left: 16px;
+      z-index: 2;
+      max-width: min(290px, calc(100% - 32px));
+      color: #40545c;
+      font-size: 11px;
+    }
+    .map-legend summary {
+      width: fit-content;
+      padding: 9px 12px;
+      border: 1px solid #dfe4e6;
+      border-radius: 7px;
+      background: #fff;
+      box-shadow: 0 2px 9px #20343d20;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      list-style: none;
+    }
+    .map-legend summary::-webkit-details-marker { display: none; }
+    .map-legend summary::before { content: "ⓘ"; margin-right: 7px; color: #34814c; }
+    .legend-content {
+      margin-top: 7px;
+      padding: 12px;
+      border: 1px solid #dfe4e6;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 2px 9px #20343d20;
+      line-height: 1.45;
+    }
+    .legend-content p { margin: 0 0 9px; }
+    .legend-content p:last-child { margin-bottom: 0; }
+    .legend-title { color: #344b55; font-weight: 700; }
+    .legend-symbol {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin: 0 5px 0 2px;
+      border: 1px solid #fff;
+      border-radius: 50%;
+      vertical-align: -1px;
+      box-shadow: 0 0 0 1px #78878d;
+    }
+    .legend-green { background: green; }
+    .legend-orange { background: orange; }
+    .legend-red { background: red; }
+    .legend-boundary {
+      display: inline-block;
+      width: 18px;
+      margin: 0 5px;
+      border-top: 3px solid #174ea6;
+      vertical-align: 3px;
+    }
+    .legend-heat {
+      display: inline-block;
+      width: 48px;
+      height: 8px;
+      margin: 0 5px;
+      border-radius: 5px;
+      background: linear-gradient(90deg, blue, cyan, lime, yellow, red);
+      vertical-align: 0;
+    }
     iframe {
       display: block;
       width: 100%;
@@ -378,6 +442,18 @@
 
     <section class="map-panel" id="mapa" aria-label="Mapa interactivo de focos de incendio">
       <div class="map-toolbar">San Martín <span>· Focos VIIRS 2024</span></div>
+      <details class="map-legend">
+        <summary>Leyenda del mapa</summary>
+        <div class="legend-content">
+          <p class="legend-title">Puntos VIIRS · FRP (MW)</p>
+          <p><span class="legend-symbol legend-green"></span>Hasta 20 · <span class="legend-symbol legend-orange"></span>Más de 20 y hasta 50 · <span class="legend-symbol legend-red"></span>Más de 50.</p>
+          <p>FRP es la potencia radiativa del fuego registrada por VIIRS.</p>
+          <p><span class="legend-heat"></span>Mancha de calor. En <strong>Capas</strong>, activa densidad (concentración de focos) o riesgo combinado (FRP y puntaje meteorológico, ponderados 40 % y 60 %). Más intensidad indica un valor mayor en la capa activa.</p>
+          <p><span class="legend-boundary"></span>Límite departamental de San Martín.</p>
+          <p>Selecciona un punto para ver localidad poblada más cercana, distancia aproximada, provincia, coordenadas, fecha, FRP y categoría de confianza VIIRS.</p>
+          <p>10.584 detecciones del Perú, en fechas seleccionadas de 2024 (30 ago.; 3, 8, 13, 14 y 18 sep.). Los puntos no están filtrados por región.</p>
+        </div>
+      </details>
       <iframe
         src="./incendios.html"
         title="Mapa interactivo de focos VIIRS y límite de San Martín"
