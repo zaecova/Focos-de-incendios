@@ -3,110 +3,409 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Cronología de incendios forestales reportados en la región San Martín durante 2024.">
-  <title>Incendios forestales en San Martín — 2024</title>
+  <meta name="description" content="Mapa interactivo y cronología de focos de incendio reportados en San Martín durante 2024.">
+  <title>Incendios en San Martín — Mapa abierto</title>
   <style>
     :root {
       color-scheme: light;
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      color: #202b25;
-      background: #f5f7f4;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #263238;
+      background: #f3f5f6;
+      font-synthesis: none;
     }
-    body {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 32px 20px 48px;
-      line-height: 1.6;
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    a { color: #176b8d; }
+    .workspace {
+      height: 100vh;
+      min-height: 580px;
+      display: grid;
+      grid-template-columns: minmax(390px, 42%) minmax(0, 1fr);
     }
-    header, main, footer {
+    .sidebar {
+      min-height: 0;
+      overflow-y: auto;
       background: #fff;
-      border: 1px solid #e1e8e2;
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 18px;
+      border-right: 1px solid #dfe4e6;
+      padding: 0 24px 32px;
     }
-    h1, h2 { line-height: 1.25; }
-    h1 { margin-top: 0; color: #174b35; }
-    h2 { color: #245c43; }
-    .map-link {
-      display: inline-block;
-      margin: 4px 0 12px;
-      color: #175c3b;
-      font-size: 0.9rem;
+    .side-header {
+      position: relative;
+      margin: 0 -24px 22px;
+      padding: 22px 24px 19px;
+      background: linear-gradient(180deg, #e6e8e8 0%, #f5f6f6 76%, #fff 100%);
+      border-bottom: 1px solid #e6e9ea;
+    }
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .brand {
+      color: #37474f;
+      font-size: 23px;
+      font-weight: 750;
+      letter-spacing: -.04em;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .brand-mark {
+      display: inline-grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      margin-right: 7px;
+      border-radius: 50%;
+      background: #e4f0e9;
+      color: #287252;
+      font-size: 19px;
+      vertical-align: -2px;
+    }
+    .search {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      height: 44px;
+      padding: 0 7px 0 14px;
+      border: 1px solid #d4dadd;
+      border-radius: 24px;
+      background: #fff;
+      box-shadow: 0 2px 6px #20343d12;
+    }
+    .search input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      color: #34474f;
+      background: transparent;
+      font: inherit;
+      font-size: 13px;
+    }
+    .search input::placeholder { color: #929da1; }
+    .search button {
+      flex: 0 0 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 50%;
+      background: #edf2f2;
+      color: #31535f;
+      cursor: pointer;
+      font-size: 17px;
+    }
+    .side-header h1 {
+      margin: 0 0 9px;
+      color: #343d41;
+      font-size: 27px;
+      line-height: 1.18;
+    }
+    .side-header .intro { max-width: 520px; }
+    }
+    .eyebrow {
+      color: #74858c;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .intro { margin: 0; color: #637178; font-size: 14px; line-height: 1.55; }
+    .historical {
+      margin: 16px 0;
+      padding: 11px 13px;
+      border: 1px solid #f0dfbd;
+      border-radius: 7px;
+      background: #fffaf0;
+      color: #765324;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+      margin: 16px 0 19px;
+    }
+    .quick-link {
+      display: flex;
+      min-height: 70px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      border: 1px solid #e0e4e6;
+      border-radius: 14px;
+      background: linear-gradient(#fff, #f7f8f8);
+      box-shadow: 0 2px 6px #20343d0d;
+      color: #526168;
+      font-size: 11px;
+      text-decoration: none;
+    }
+    .quick-link:hover { border-color: #b6c8ce; background: #f0f6f7; }
+    .quick-icon {
+      display: grid;
+      width: 29px;
+      height: 29px;
+      place-items: center;
+      border-radius: 50%;
+      background: #34814c;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .quick-link:nth-child(2) .quick-icon { background: #d26052; }
+    .quick-link:nth-child(3) .quick-icon { background: #4a83c5; }
+    .search-status {
+      min-height: 16px;
+      margin: -11px 2px 10px;
+      color: #738188;
+      font-size: 11px;
+    }
+    .section-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin: 22px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e8edef;
+    }
+    h2 { margin: 0; color: #344b55; font-size: 16px; }
+    .section-note { color: #849197; font-size: 11px; }
+    .timeline {
+      list-style: none;
+      margin: 0;
+      padding: 0 0 0 14px;
+      border-left: 2px solid #dce8e9;
+    }
+    .timeline li {
+      position: relative;
+      padding: 0 0 16px 13px;
+      color: #56656b;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .timeline li:last-child { padding-bottom: 0; }
+    .timeline li::before {
+      content: "";
+      position: absolute;
+      left: -20px;
+      top: 4px;
+      width: 10px;
+      height: 10px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: #e87532;
+      box-shadow: 0 0 0 1px #e87532;
+    }
+    .event-date {
+      display: block;
+      margin-bottom: 2px;
+      color: #364d57;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .sources {
+      margin: 0;
+      padding-left: 17px;
+      color: #66757b;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+    .sources li { margin-bottom: 8px; }
+    .sources a { text-decoration: none; }
+    .sources a:hover { text-decoration: underline; }
+    .data-note {
+      margin-top: 20px;
+      padding-top: 13px;
+      border-top: 1px solid #e8edef;
+      color: #7a878c;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+    .map-panel {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      background: #e8eef0;
+    }
+    .map-toolbar {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      z-index: 1;
+      padding: 9px 13px;
+      border: 1px solid #dfe4e6;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 2px 9px #20343d20;
+      color: #40545c;
+      font-size: 12px;
       font-weight: 650;
+      pointer-events: none;
     }
-    .event { margin: 0 0 20px; }
-    .event:last-child { margin-bottom: 0; }
-    .date { font-weight: 700; color: #7d351d; }
-    .note, footer { font-size: 0.92rem; color: #4a554e; }
-    .year-notice {
-      padding: 12px 14px;
-      border-left: 4px solid #b36b16;
-      background: #fff7e8;
-      font-weight: 650;
+    .map-toolbar span { color: #77868b; font-weight: 400; }
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
     }
-    li { margin: 0 0 10px; overflow-wrap: anywhere; }
-    a { color: #175c8e; }
+    @media (max-width: 760px) {
+      .workspace {
+        height: auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column-reverse;
+      }
+      .map-panel { height: 58vh; min-height: 380px; }
+      .sidebar {
+        overflow: visible;
+        border-right: 0;
+        padding: 0 19px 30px;
+      }
+      .side-header { margin-right: -19px; margin-left: -19px; padding: 18px 19px 17px; }
+      .brand-row { margin-bottom: 17px; }
+      .brand { font-size: 21px; }
+      .side-header h1 { font-size: 24px; }
+    }
+    @media (max-width: 430px) {
+      .workspace { display: flex; flex-direction: column; }
+      .map-panel { order: 0; height: 53vh; min-height: 340px; }
+      .sidebar { order: 1; }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Incendios forestales en San Martín — 2024</h1>
-    <p>
-      Cronología resumida de los principales incendios y reportes regionales
-      documentados durante 2024.
-    </p>
-    <p class="year-notice">
-      Información histórica correspondiente exclusivamente al año 2024;
-      no representa la situación actual ni incluye eventos de otros años.
-    </p>
-    <a class="map-link" href="./incendios.html">Ver mapa interactivo de focos VIIRS →</a>
-    <p class="note">
-      El mapa muestra focos VIIRS registrados en las fechas seleccionadas de 2024
-      y destaca el límite departamental de San Martín. El archivo de focos tiene
-      cobertura nacional; el contorno no significa que todos los puntos estén
-      filtrados dentro de la región.
-    </p>
-  </header>
+  <main class="workspace">
+    <aside class="sidebar">
+      <header class="side-header">
+        <div class="brand-row">
+          <a class="brand" href="./" aria-label="Inicio del mapa de incendios">
+            <span class="brand-mark" aria-hidden="true">◉</span>Mapa abierto
+          </a>
+        </div>
+        <form class="search" id="event-search" role="search">
+          <input id="search-query" type="search" placeholder="Buscar incendio o localidad" aria-label="Buscar incendio o localidad">
+          <button type="submit" aria-label="Buscar">⌕</button>
+        </form>
+        <div class="eyebrow" style="margin-top: 21px;">Perú · Región San Martín</div>
+        <h1>Incendios forestales</h1>
+        <p class="intro">
+          Explora el mapa y los principales eventos reportados en la región.
+          Una vista cartográfica del registro histórico VIIRS.
+        </p>
+      </header>
 
-  <main>
-    <h2>Cronología</h2>
-    <article class="event">
-      <p><span class="date">30 de agosto de 2024 — Sacanche, provincia de Huallaga.</span>
-        Se reportó el inicio de focos destructivos; el incendio de Sacanche habría
-        arrasado más de 338 hectáreas.</p>
-    </article>
-    <article class="event">
-      <p><span class="date">3 de septiembre de 2024 — Mishquiyacu, provincia de Bellavista.</span>
-        Se reportó un incendio de gran magnitud que afectó alrededor de 55 hectáreas.</p>
-    </article>
-    <article class="event">
-      <p><span class="date">8 de septiembre de 2024 — Reactivación regional.</span>
-        Se informó la reactivación de varios focos tras lluvias breves ocurridas el
-        5 de septiembre.</p>
-    </article>
-    <article class="event">
-      <p><span class="date">13 y 14 de septiembre de 2024 — Alto Mayo.</span>
-        Se reportaron incendios críticos en la zona de Moyobamba, incluidos los
-        sectores Juninje, Creación 2000 y San José de Alto Mayo, y en el distrito
-        de Awajún, provincia de Rioja.</p>
-    </article>
-    <article class="event">
-      <p><span class="date">18 de septiembre de 2024 — Balance regional.</span>
-        El reporte del COER consignó 39 eventos: 30 mitigados y 9 activos. También
-        se informó la declaratoria de emergencia para San Martín.</p>
-    </article>
+      <p class="historical">
+        <strong>Datos históricos:</strong> la información corresponde exclusivamente
+        a 2024 y no describe la situación actual.
+      </p>
+
+      <nav class="quick-links" aria-label="Accesos rápidos">
+        <a class="quick-link" href="#mapa">
+          <span class="quick-icon" aria-hidden="true">⌖</span>
+          <span>Mapa</span>
+        </a>
+        <a class="quick-link" href="#cronologia">
+          <span class="quick-icon" aria-hidden="true">◷</span>
+          <span>Cronología</span>
+        </a>
+        <a class="quick-link" href="#fuentes">
+          <span class="quick-icon" aria-hidden="true">↗</span>
+          <span>Fuentes</span>
+        </a>
+      </nav>
+      <p class="search-status" id="search-status" aria-live="polite"></p>
+
+      <div class="section-heading">
+        <h2 id="cronologia">Fechas destacadas</h2>
+        <span class="section-note">2024</span>
+      </div>
+      <ol class="timeline">
+        <li>
+          <span class="event-date">30 ago · Sacanche</span>
+          Incendio en el distrito de Sacanche, provincia de Huallaga. El reporte
+          citado señala más de 338 hectáreas afectadas.
+        </li>
+        <li>
+          <span class="event-date">3 sep · Mishquiyacu</span>
+          Incendio de gran magnitud en la provincia de Bellavista, con alrededor
+          de 55 hectáreas afectadas según la fuente citada.
+        </li>
+        <li>
+          <span class="event-date">8 sep · Reactivación regional</span>
+          Se reportó la reactivación de focos tras lluvias breves del 5 de septiembre.
+        </li>
+        <li>
+          <span class="event-date">13–14 sep · Alto Mayo</span>
+          Incendios críticos reportados en Moyobamba y Awajún, con afectación de
+          sectores y caseríos de la zona.
+        </li>
+        <li>
+          <span class="event-date">18 sep · Balance regional</span>
+          El COER reportó 39 eventos: 30 mitigados y 9 activos; también se informó
+          la declaratoria de emergencia en San Martín.
+        </li>
+      </ol>
+
+      <div class="section-heading">
+        <h2 id="fuentes">Fuentes</h2>
+        <span class="section-note">Referencias</span>
+      </div>
+      <ol class="sources">
+        <li><a href="https://www.rcrperu.com/incendios-forestales-en-san-martin-arrasaron-con-mas-de-393-hectareas-de-bosques/">RCR Perú — Incendios forestales en San Martín.</a></li>
+        <li><a href="https://portal.indeci.gob.pe/wp-content/uploads/2024/09/REPORTE-COMPLEMENTARIO-N.%C2%BA-8523-16SET2024-INCENDIO-FORESTAL-EN-EL-DISTRITO-DE-MOYOBAMBA-SAN-MART%C3%8DN-1-1.pdf">INDECI — Reporte de incendio forestal en Moyobamba.</a></li>
+        <li><a href="https://www.infobae.com/peru/2024/09/18/incendios-forestales-en-peru-en-vivo-fallecidos-hoy-regiones-afectas-y-declaratoria-de-emergencia-por-el-fuego/">Infobae — Cobertura y declaratoria de emergencia.</a></li>
+        <li><a href="https://www.gob.pe/institucion/regionsanmartin/noticias/1027859-region-san-martin-registra-uno-de-los-peores-sucesos-de-incendios-forestales-de-los-ultimos-anos">Gobierno Regional de San Martín — Balance regional.</a></li>
+        <li><a href="https://es.wikipedia.org/wiki/Incendios_forestales_en_Per%C3%BA_de_2024">Wikipedia — Incendios forestales en Perú de 2024 (fuente secundaria).</a></li>
+      </ol>
+
+      <p class="data-note">
+        El mapa interactivo muestra focos del archivo VIIRS para las fechas
+        seleccionadas y delimita San Martín. El CSV tiene cobertura nacional:
+        los puntos no están filtrados por región.
+      </p>
+    </aside>
+
+    <section class="map-panel" id="mapa" aria-label="Mapa interactivo de focos de incendio">
+      <div class="map-toolbar">San Martín <span>· Focos VIIRS 2024</span></div>
+      <iframe
+        src="./incendios.html"
+        title="Mapa interactivo de focos VIIRS y límite de San Martín"
+        loading="eager"
+        allowfullscreen>
+      </iframe>
+    </section>
   </main>
+  <script>
+    const searchForm = document.getElementById("event-search");
+    const searchInput = document.getElementById("search-query");
+    const searchStatus = document.getElementById("search-status");
+    const timelineItems = [...document.querySelectorAll(".timeline li")];
 
-  <footer>
-    <h2>Fuentes</h2>
-    <ol>
-      <li><a href="https://www.rcrperu.com/incendios-forestales-en-san-martin-arrasaron-con-mas-de-393-hectareas-de-bosques/">RCR Perú — Incendios forestales en San Martín arrasaron con más de 393 hectáreas de bosques.</a></li>
-      <li><a href="https://portal.indeci.gob.pe/wp-content/uploads/2024/09/REPORTE-COMPLEMENTARIO-N.%C2%BA-8523-16SET2024-INCENDIO-FORESTAL-EN-EL-DISTRITO-DE-MOYOBAMBA-SAN-MART%C3%8DN-1-1.pdf">INDECI — Reporte complementario sobre incendio forestal en Moyobamba, 16 de septiembre de 2024.</a></li>
-      <li><a href="https://www.infobae.com/peru/2024/09/18/incendios-forestales-en-peru-en-vivo-fallecidos-hoy-regiones-afectas-y-declaratoria-de-emergencia-por-el-fuego/">Infobae — Cobertura de incendios forestales y declaratoria de emergencia, septiembre de 2024.</a></li>
-      <li><a href="https://www.gob.pe/institucion/regionsanmartin/noticias/1027859-region-san-martin-registra-uno-de-los-peores-sucesos-de-incendios-forestales-de-los-ultimos-anos">Gobierno Regional de San Martín — Balance regional de incendios forestales.</a></li>
-      <li><a href="https://es.wikipedia.org/wiki/Incendios_forestales_en_Per%C3%BA_de_2024">Wikipedia — Incendios forestales en Perú de 2024 (referencia secundaria).</a></li>
-    </ol>
-  </footer>
+    searchForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const query = searchInput.value.trim().toLocaleLowerCase("es");
+      let matches = 0;
+
+      for (const item of timelineItems) {
+        const found = item.textContent.toLocaleLowerCase("es").includes(query);
+        item.hidden = Boolean(query) && !found;
+        if (!query || found) matches += 1;
+      }
+
+      searchStatus.textContent = query
+        ? `${matches} evento${matches === 1 ? "" : "s"} encontrado${matches === 1 ? "" : "s"}.`
+        : "";
+      document.getElementById("cronologia").scrollIntoView({ behavior: "smooth" });
+    });
+
+    searchInput.addEventListener("input", () => {
+      if (!searchInput.value.trim()) {
+        for (const item of timelineItems) item.hidden = false;
+        searchStatus.textContent = "";
+      }
+    });
+  </script>
 </body>
 </html>
