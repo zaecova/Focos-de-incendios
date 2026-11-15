@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Documentación sobre el uso del mapa de detecciones VIIRS de incendios forestales en San Martín.">
+  <title>Documentación del mapa — Incendios en San Martín</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #263238;
+      background: #f3f5f6;
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    a { color: #176b8d; }
+    .page { width: min(900px, calc(100% - 32px)); margin: 32px auto; }
+    .topbar, .content {
+      border: 1px solid #e0e6e8;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 3px 14px #20343d0d;
+    }
+    .topbar { padding: 18px 22px; }
+    .back-link { font-size: 13px; font-weight: 700; text-decoration: none; }
+    .back-link:hover { text-decoration: underline; }
+    .eyebrow {
+      margin: 22px 0 7px;
+      color: #74858c;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 0 0 8px; color: #344b55; font-size: clamp(25px, 5vw, 34px); }
+    .intro { max-width: 680px; margin: 0; color: #637178; font-size: 15px; line-height: 1.6; }
+    .content { margin-top: 16px; padding: 10px 22px 22px; }
+    section { padding: 18px 0; border-bottom: 1px solid #e8edef; }
+    section:last-child { padding-bottom: 0; border-bottom: 0; }
+    h2 { margin: 0 0 10px; color: #344b55; font-size: 19px; }
+    p, li { color: #56656b; font-size: 14px; line-height: 1.65; }
+    p { margin: 8px 0; }
+    ul, ol { margin: 8px 0 0; padding-left: 22px; }
+    li + li { margin-top: 5px; }
+    .note {
+      padding: 12px 14px;
+      border: 1px solid #f0dfbd;
+      border-radius: 7px;
+      background: #fffaf0;
+      color: #765324;
+    }
+    .note strong { color: #684715; }
+    .sources a { text-decoration: none; }
+    .sources a:hover { text-decoration: underline; }
+    footer { padding: 18px 4px; color: #738188; font-size: 12px; }
+    @media (max-width: 600px) {
+      .page { width: min(100% - 20px, 900px); margin: 10px auto; }
+      .topbar { padding: 16px; }
+      .content { padding: 6px 16px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <a class="back-link" href="./index.html">← Volver al mapa</a>
+      <p class="eyebrow">Guía de uso</p>
+      <h1>Documentación del mapa</h1>
+      <p class="intro">Esta página explica cómo explorar las detecciones VIIRS, interpretar las capas y entender los límites de los datos mostrados.</p>
+    </header>
+
+    <div class="content">
+      <section>
+        <h2>Cómo usar el mapa</h2>
+        <ol>
+          <li>Arrastra el mapa para desplazarte y usa los controles <strong>+</strong> y <strong>−</strong> para acercar o alejar.</li>
+          <li>Abre <strong>Capas</strong> para activar o desactivar las detecciones por año, las capas de densidad y el límite de San Martín.</li>
+          <li>Selecciona un punto para consultar sus datos. La localidad indicada es la población más cercana y sirve como referencia geográfica.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Qué representa la leyenda</h2>
+        <ul>
+          <li><strong>Puntos VIIRS · FRP (MW):</strong> el color distingue la potencia radiativa del fuego registrada por el sensor: verde hasta 20 MW, naranja por encima de 20 y hasta 50 MW, y rojo por encima de 50 MW.</li>
+          <li><strong>Mancha de calor:</strong> representa concentración de detecciones en la capa activa; no es una probabilidad de incendio.</li>
+          <li><strong>Límite departamental:</strong> contorno de referencia de la región San Martín.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Datos y cobertura</h2>
+        <ul>
+          <li><strong>2024:</strong> 10.584 detecciones de todo el Perú en seis fechas seleccionadas: 30 de agosto y 3, 8, 13, 14 y 18 de septiembre.</li>
+          <li><strong>2025:</strong> 7.650 detecciones del año completo dentro de la región San Martín.</li>
+        </ul>
+        <p>Los periodos y coberturas de las capas son diferentes, por lo que sus cantidades no se deben comparar directamente.</p>
+        <p class="note"><strong>Importante:</strong> una detección satelital señala una anomalía térmica y no confirma por sí sola un incendio. La localidad más cercana tampoco es necesariamente el sitio exacto de la detección; la distancia se muestra como referencia.</p>
+      </section>
+
+      <section>
+        <h2>Información de cada punto</h2>
+        <p>Los detalles pueden incluir localidad poblada más cercana y distancia aproximada, provincia, coordenadas, fecha, FRP y categoría de confianza VIIRS. Las coordenadas identifican la ubicación registrada por el producto satelital.</p>
+      </section>
+
+      <section class="sources">
+        <h2>Fuentes y referencias</h2>
+        <ul>
+          <li><a href="https://firms.modaps.eosdis.nasa.gov/download/">NASA FIRMS — datos de focos activos VIIRS (JPSS-1 / NOAA-20).</a></li>
+          <li><a href="https://github.com/wmgeolab/geoBoundaries/tree/9469f09/releaseData/gbOpen/PER/ADM2">geoBoundaries — límites provinciales del Perú.</a></li>
+          <li><a href="https://www.geonames.org/">GeoNames — referencia geográfica de localidades pobladas.</a></li>
+        </ul>
+      </section>
+    </div>
+    <footer>Mapa histórico de detecciones VIIRS para Perú y la región San Martín.</footer>
+  </main>
+</body>
+</html>
