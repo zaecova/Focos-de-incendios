@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Mapa interactivo de detecciones VIIRS en Perú durante fechas seleccionadas de 2024 y en San Martín durante 2025.">
+  <meta name="description" content="Mapa interactivo de detecciones satelitales VIIRS en San Martín durante 2024, 2025 y 2026.">
   <title>Incendios en San Martín — Mapa abierto</title>
   <style>
     :root {
@@ -356,15 +356,15 @@
         <div class="eyebrow" style="margin-top: 21px;">Perú · Región San Martín</div>
         <h1>Incendios forestales</h1>
         <p class="intro">
-          Explora el mapa y los principales eventos reportados en la región.
-          Una vista cartográfica del registro histórico VIIRS.
+          Explora las detecciones satelitales VIIRS registradas en la región
+          entre 2024 y 2026.
         </p>
       </header>
 
       <p class="historical">
-        <strong>Datos históricos:</strong> el mapa reúne registros VIIRS de 2024
-        y 2025. Las detecciones satelitales no equivalen por sí solas a incendios
-        confirmados ni describen la situación actual.
+        <strong>Datos históricos:</strong> el mapa reúne detecciones VIIRS de
+        2024, 2025 y 2026. Una detección no equivale por sí sola a un incendio
+        confirmado; distintos satélites pueden registrar el mismo foco.
       </p>
 
       <nav class="quick-links" aria-label="Accesos rápidos">
@@ -389,10 +389,10 @@
           <p class="legend-title">Puntos VIIRS · FRP (MW)</p>
           <p><span class="legend-symbol legend-green"></span>Hasta 20 · <span class="legend-symbol legend-orange"></span>Más de 20 y hasta 50 · <span class="legend-symbol legend-red"></span>Más de 50.</p>
           <p>FRP es la potencia radiativa del fuego registrada por VIIRS.</p>
-          <p><span class="legend-heat"></span>Mancha de calor. En <strong>Capas</strong>, activa “Densidad VIIRS — fechas reportadas 2024” o “Densidad VIIRS · San Martín 2025”. Muestra concentración de detecciones, no probabilidad de incendio.</p>
+          <p><span class="legend-heat"></span>Mancha de calor: activa la densidad de San Martín 2024, 2025 o 2026 en <strong>Capas</strong>. La densidad nacional histórica de seis fechas de 2024 también está disponible. Muestra concentración, no probabilidad de incendio.</p>
           <p><span class="legend-boundary"></span>Límite departamental de San Martín.</p>
-          <p>Activa o desactiva los puntos por año en <strong>Capas</strong>. Cada marcador muestra la localidad poblada más cercana, distancia aproximada, provincia, coordenadas, fecha, FRP y confianza VIIRS.</p>
-          <p><strong>2024:</strong> 10.584 detecciones de todo el Perú en seis fechas seleccionadas (30 ago.; 3, 8, 13, 14 y 18 sep.). <strong>2025:</strong> 7.650 detecciones del año completo dentro de San Martín. Las coberturas son distintas.</p>
+          <p>Activa o desactiva las capas por año en <strong>Capas</strong>. Los popups muestran coordenadas, fecha, hora, FRP, confianza y satélite; los registros NOAA-20 de 2025 también incluyen localidad y provincia aproximadas.</p>
+          <p><strong>2024:</strong> 40.482 detecciones en San Martín. <strong>2025:</strong> 23.273 detecciones en San Martín. <strong>2026:</strong> 13.611 detecciones hasta el 5 de noviembre. Los totales reúnen los satélites disponibles y pueden incluir observaciones del mismo foco; 2026 es un periodo parcial.</p>
         </div>
       </details>
       <div class="section-heading">
@@ -407,22 +407,24 @@
         <li><a href="https://es.wikipedia.org/wiki/Incendios_forestales_en_Per%C3%BA_de_2024">Wikipedia — Incendios forestales en Perú de 2024 (fuente secundaria).</a></li>
         <li><a href="https://github.com/wmgeolab/geoBoundaries/tree/9469f09/releaseData/gbOpen/PER/ADM2">geoBoundaries — Límites provinciales del Perú (ADM2, CC BY 3.0 IGO), usados para mostrar el lugar aproximado de cada foco.</a></li>
         <li><a href="https://www.geonames.org/">GeoNames — Base geográfica de localidades (CC BY 4.0); se usa para indicar la localidad poblada más cercana y su distancia aproximada.</a></li>
-        <li><a href="https://firms.modaps.eosdis.nasa.gov/download/">NASA FIRMS — Datos de focos activos VIIRS (JPSS-1 / NOAA-20).</a></li>
+        <li><a href="https://firms.modaps.eosdis.nasa.gov/download/">NASA FIRMS — Datos de focos activos VIIRS (NOAA-20, NOAA-21 y Suomi-NPP).</a></li>
       </ol>
 
       <p class="data-note">
-        La capa 2024 contiene 10.584 detecciones nacionales de seis fechas
-        seleccionadas. La capa 2025 contiene 7.650 detecciones del año completo
-        dentro de San Martín. Las coberturas y periodos son distintos; sus
-        cantidades no deben compararse directamente.
+        Cobertura regional San Martín: 40.482 detecciones en 2024 (año completo,
+        NOAA-20/21 y Suomi-NPP); 23.273 en 2025 (año completo, NOAA-20/21 y
+        Suomi-NPP); y 13.611 en 2026 (1 de enero–5 de noviembre, NOAA-21 y
+        Suomi-NPP). El tramo final de 2026 usa datos near-real-time, sujetos a
+        actualización. Son detecciones satelitales, no incendios confirmados;
+        varios satélites pueden observar el mismo foco.
       </p>
     </aside>
 
     <section class="map-panel" id="mapa" aria-label="Mapa interactivo de focos de incendio">
-      <div class="map-toolbar">San Martín <span>· Detecciones VIIRS 2024–2025</span></div>
+      <div class="map-toolbar">San Martín <span>· Detecciones VIIRS 2024–2026</span></div>
       <iframe
         src="./incendios.html"
-        title="Mapa interactivo de detecciones VIIRS 2024–2025 y límite de San Martín"
+        title="Mapa interactivo de detecciones VIIRS 2024–2026 y límite de San Martín"
         loading="eager"
         allowfullscreen>
       </iframe>
