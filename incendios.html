@@ -243554,7 +243554,7 @@
                 {
                     style: { color: "#174ea6", weight: 3, fillColor: "#4285f4", fillOpacity: 0.04 },
                     onEachFeature: function (feature, layer) {
-                        layer.bindPopup("L\u00edmite departamental de San Mart\u00edn<br>Fuente: geoBoundaries (gbOpen, CC BY 3.0 IGO)");
+                        layer.bindPopup("<strong>Lugar:</strong> " + feature.properties.shapeName + "<br>Departamento del Per\u00fa<br>Fuente: geoBoundaries (gbOpen, CC BY 3.0 IGO)");
                         layer.bindTooltip(feature.properties.shapeName);
                     }
                 }

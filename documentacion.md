@@ -23,7 +23,7 @@ Este proyecto presenta detecciones satelitales VIIRS para la región San Martín
 - **Detecciones 2025:** 23.273 registros combinados de NOAA-20, NOAA-21 y Suomi-NPP.
 - **Detecciones 2026:** NOAA-21 y Suomi-NPP; la parte más reciente procede de datos near-real-time.
 - **Mancha de calor:** muestra la concentración de detecciones de la capa correspondiente; no representa una probabilidad de incendio.
-- **Límite departamental:** contorno de referencia de la región San Martín.
+- **Límite departamental:** al seleccionar el contorno se muestra el nombre del lugar (San Martín), su nivel administrativo y la atribución de la fuente geoBoundaries.
 
 ## Calendario y patrones históricos
 
