@@ -243626,6 +243626,12 @@
     const escapeText = (value) => String(value).replace(/[&<>"']/g, (character) => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;",
     })[character]);
+    const formatProvince = (province) => {
+        if (!province) return "";
+        const value = String(province);
+        const normalized = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        return normalized === "san martin" ? "San Mart\u00edn" : `${escapeText(province)}, San Mart\u00edn`;
+    };
     const sendToParent = (message) => window.parent.postMessage(message, window.location.origin);
     const isValidPolygon = (polygon) => Array.isArray(polygon) && polygon.length >= 3 && polygon.length <= 1000
         && polygon.every((point) => Array.isArray(point) && point.length === 2
@@ -243662,10 +243668,8 @@
 
     const renderPopup = (record) => {
         const [latitude, longitude, date, time, frp, confidence, satellite, locality, distance, province] = record;
-        const localityDetails = locality
-            ? `<br><strong>Localidad m\u00e1s cercana:</strong> ${escapeText(locality)}${Number.isFinite(distance) ? ` (${distance.toFixed(1)} km)` : ""}`
-                + `<br><strong>Provincia:</strong> ${province ? `${escapeText(province)}, San Mart\u00edn` : "No identificada"}`
-            : "";
+        const localityDetails = `<br><strong>Localidad m\u00e1s cercana:</strong> ${locality ? `${escapeText(locality)}${Number.isFinite(distance) ? ` (${distance.toFixed(1)} km)` : ""}` : "No disponible en los datos"}`
+            + `<br><strong>Provincia:</strong> ${formatProvince(province) || "No identificada"}`;
         const timeDetails = time ? `<br><strong>Hora UTC:</strong> ${escapeText(String(time).padStart(4, "0").replace(/^(\d{2})(\d{2})$/, "$1:$2"))}` : "";
         return `<strong>Sat\u00e9lite:</strong> ${satelliteNames[satellite]}`
             + localityDetails
@@ -243673,6 +243677,12 @@
             + `<br><strong>Fecha:</strong> ${escapeText(date)}${timeDetails}`
             + `<br><strong>FRP:</strong> ${Number.isFinite(frp) ? `${frp.toFixed(2)} MW` : "No disponible"}`
             + `<br><strong>Confianza VIIRS:</strong> ${escapeText(confidenceLabels[confidence] || confidence || "No informada")}`;
+    };
+    const renderLocationTooltip = (record) => {
+        const [, , , , , , , locality, distance, province] = record;
+        if (!locality) return null;
+        return `<strong>${escapeText(locality)}</strong>${province ? `<br>${formatProvince(province)}` : ""}`
+            + `${Number.isFinite(distance) ? `<br>A ${distance.toFixed(1)} km` : ""}`;
     };
     const applyFilters = () => {
         if (!recordsByYear) return;
@@ -243688,14 +243698,17 @@
                 coordinates.push([record[0], record[1]]);
                 const frp = Number.isFinite(record[4]) ? record[4] : 0;
                 const color = frp > 50 ? "red" : frp > 20 ? "orange" : "green";
-                L.circleMarker([record[0], record[1]], {
+                const marker = L.circleMarker([record[0], record[1]], {
                     renderer,
                     radius: 5,
                     color,
                     fill: true,
                     fillOpacity: 0.7,
                     weight: 1.5,
-                }).bindPopup(renderPopup(record)).addTo(points);
+                }).bindPopup(renderPopup(record));
+                const locationTooltip = renderLocationTooltip(record);
+                if (locationTooltip) marker.bindTooltip(locationTooltip, { direction: "top", sticky: true });
+                marker.addTo(points);
             });
             density.setLatLngs(coordinates);
         });

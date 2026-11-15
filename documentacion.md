@@ -11,7 +11,7 @@ Este proyecto presenta detecciones satelitales VIIRS para la región San Martín
 3. Usa los filtros de año, mes y confianza para acotar los puntos y el calendario.
 4. Pulsa **Dibujar área en el mapa**, traza un polígono y cierra su contorno para limitar los resultados a esa zona. **Quitar área** restaura toda la región.
 5. El calendario muestra la intensidad diaria; pulsa una fecha para filtrar el mapa por ese día y **Quitar día** para volver al intervalo elegido.
-6. Selecciona un marcador para consultar sus detalles.
+6. Pasa el cursor sobre un marcador con nombre para ver la localidad cercana; selecciónalo para consultar todos sus detalles.
 
 ## Capas y leyenda
 
@@ -43,7 +43,7 @@ La cobertura de 2026 es parcial, por lo que su total no es directamente comparab
 
 ## Detalles de los marcadores
 
-Los registros muestran fecha, hora disponible, coordenadas, FRP, confianza VIIRS y satélite. Los registros NOAA-20 de 2025 también incluyen provincia y la localidad poblada más cercana; la localidad es una referencia geográfica y no necesariamente el lugar exacto de la detección, y la distancia es aproximada. Los nuevos CSV no incluyen nombres de localidades.
+Los registros muestran fecha, hora disponible, coordenadas, FRP, confianza VIIRS y satélite. Cuando la fuente contiene esa información, el punto muestra la provincia y la localidad poblada más cercana, junto con su distancia aproximada. La localidad es una referencia geográfica, no necesariamente el lugar exacto de la detección. Hay nombres para 1.331 registros de 2024, incorporados al coincidir exactamente fecha y coordenadas con puntos previamente identificados, y para 7.650 registros NOAA-20 de 2025. Los CSV de 2026 no incluyen localidades. En los demás casos, el popup indica que el nombre no está disponible en los datos.
 
 ## Fuentes
 
