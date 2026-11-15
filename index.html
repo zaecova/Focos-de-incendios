@@ -250,7 +250,11 @@
     }
     .map-toolbar span { color: #77868b; font-weight: 400; }
     .map-legend {
-      margin: 0 0 14px;
+      position: absolute;
+      bottom: 18px;
+      left: 16px;
+      z-index: 2;
+      max-width: min(290px, calc(100% - 32px));
       color: #40545c;
       font-size: 11px;
     }
@@ -439,6 +443,18 @@
 
     <section class="map-panel" id="mapa" aria-label="Mapa interactivo de focos de incendio">
       <div class="map-toolbar">San Martín <span>· Detecciones VIIRS 2024–2025</span></div>
+      <details class="map-legend">
+        <summary>Leyenda del mapa</summary>
+        <div class="legend-content">
+          <p class="legend-title">Puntos VIIRS · FRP (MW)</p>
+          <p><span class="legend-symbol legend-green"></span>Hasta 20 · <span class="legend-symbol legend-orange"></span>Más de 20 y hasta 50 · <span class="legend-symbol legend-red"></span>Más de 50.</p>
+          <p>FRP es la potencia radiativa del fuego registrada por VIIRS.</p>
+          <p><span class="legend-heat"></span>Mancha de calor. En <strong>Capas</strong>, activa “Densidad VIIRS — fechas reportadas 2024” o “Densidad VIIRS · San Martín 2025”. Muestra concentración de detecciones, no probabilidad de incendio.</p>
+          <p><span class="legend-boundary"></span>Límite departamental de San Martín.</p>
+          <p>Activa o desactiva los puntos por año en <strong>Capas</strong>. Cada marcador muestra la localidad poblada más cercana, distancia aproximada, provincia, coordenadas, fecha, FRP y confianza VIIRS.</p>
+          <p><strong>2024:</strong> 10.584 detecciones de todo el Perú en seis fechas seleccionadas (30 ago.; 3, 8, 13, 14 y 18 sep.). <strong>2025:</strong> 7.650 detecciones del año completo dentro de San Martín. Las coberturas son distintas.</p>
+        </div>
+      </details>
       <iframe
         src="./incendios.html"
         title="Mapa interactivo de detecciones VIIRS 2024–2025 y límite de San Martín"
