@@ -23,7 +23,7 @@ Este proyecto presenta detecciones satelitales VIIRS para la región San Martín
 - **Detecciones 2025:** 23.273 registros combinados de NOAA-20, NOAA-21 y Suomi-NPP.
 - **Detecciones 2026:** NOAA-21 y Suomi-NPP; la parte más reciente procede de datos near-real-time.
 - **Mancha de calor:** muestra la concentración de detecciones de la capa correspondiente; no representa una probabilidad de incendio.
-- **Límite departamental:** al seleccionar el contorno se muestra el nombre del lugar (San Martín), su nivel administrativo y la atribución de la fuente geoBoundaries.
+- **Límite departamental:** al seleccionar una zona del mapa se consulta el nombre geográfico cercano mediante OpenStreetMap; el popup también muestra la provincia, departamento y coordenadas. El nombre es una referencia aproximada y requiere conexión a internet.
 
 ## Calendario y patrones históricos
 
@@ -51,3 +51,4 @@ Los registros muestran fecha, hora disponible, coordenadas, FRP, confianza VIIRS
 - Archivos CSV FIRMS publicados en el repositorio y conjunto regional procesado en `datos_viirs_san_martin_2024_2026.json`.
 - [geoBoundaries — límites provinciales del Perú](https://github.com/wmgeolab/geoBoundaries/tree/9469f09/releaseData/gbOpen/PER/ADM2).
 - [GeoNames — referencia geográfica de localidades](https://www.geonames.org/).
+- [OpenStreetMap — nombres geográficos y atribución](https://www.openstreetmap.org/copyright), consultados para la ubicación seleccionada.
