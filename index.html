@@ -559,7 +559,7 @@
     <section class="map-panel" id="mapa" aria-label="Mapa interactivo de focos de incendio">
       <div class="map-toolbar">San Martín <span>· Detecciones VIIRS 2024–2026</span></div>
       <iframe
-        src="./incendios.html?rev=nombres-puntos-v1"
+        src="./incendios.html?rev=periodo-sincronizado-v1"
         title="Mapa interactivo de detecciones VIIRS 2024–2026 y límite de San Martín"
         loading="eager"
         allowfullscreen>
@@ -878,6 +878,16 @@
           refreshDashboard();
         } else if (message.type === "viirs:area-changed") {
           areaPolygon = Array.isArray(message.polygon) ? message.polygon : null;
+          refreshDashboard();
+        } else if (message.type === "viirs:map-period-changed") {
+          if (!["all", ...years].includes(message.year)
+            || (message.month && !/^\d{2}$/.test(message.month))) return;
+          const periodChanged = filters.year !== message.year || filters.month !== message.month;
+          filters.year = message.year;
+          filters.month = message.month || "";
+          filterYear.value = filters.year;
+          filterMonth.value = filters.month;
+          if (periodChanged) selectedDate = "";
           refreshDashboard();
         } else if (message.type === "viirs:map-status" && message.error) {
           filterStatus.textContent = `Error del mapa: ${message.error}`;

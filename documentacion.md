@@ -8,7 +8,7 @@ Este proyecto presenta detecciones satelitales VIIRS para la región San Martín
 
 1. Arrastra el mapa para desplazarte y usa los controles **+** y **−** para acercar o alejar.
 2. Abre **Capas** para activar o desactivar las detecciones, las capas de densidad y el límite departamental de San Martín.
-3. Usa los filtros de año, mes y confianza para acotar los puntos y el calendario.
+3. Usa los filtros de año, mes y confianza para acotar los puntos y el calendario. Los selectores de año y mes del mapa OpenStreetMap están sincronizados con los filtros de la página: puedes cambiar el periodo desde cualquiera de los dos lugares.
 4. Pulsa **Dibujar área en el mapa**, traza un polígono y cierra su contorno para limitar los resultados a esa zona. **Quitar área** restaura toda la región.
 5. El calendario muestra la intensidad diaria; pulsa una fecha para filtrar el mapa por ese día y **Quitar día** para volver al intervalo elegido.
 6. Pasa el cursor sobre un marcador con nombre para ver la localidad cercana; selecciónalo para consultar todos sus detalles.
