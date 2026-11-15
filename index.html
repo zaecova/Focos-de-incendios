@@ -68,38 +68,6 @@
       font-size: 19px;
       vertical-align: -2px;
     }
-    .search {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      height: 44px;
-      padding: 0 7px 0 14px;
-      border: 1px solid #d4dadd;
-      border-radius: 24px;
-      background: #fff;
-      box-shadow: 0 2px 6px #20343d12;
-    }
-    .search input {
-      width: 100%;
-      min-width: 0;
-      border: 0;
-      outline: 0;
-      color: #34474f;
-      background: transparent;
-      font: inherit;
-      font-size: 13px;
-    }
-    .search input::placeholder { color: #929da1; }
-    .search button {
-      flex: 0 0 32px;
-      height: 32px;
-      border: 0;
-      border-radius: 50%;
-      background: #edf2f2;
-      color: #31535f;
-      cursor: pointer;
-      font-size: 17px;
-    }
     .side-header h1 {
       margin: 0 0 7px;
       color: #343d41;
@@ -161,12 +129,6 @@
     }
     .quick-link:nth-child(2) .quick-icon { background: #d26052; }
     .quick-link:nth-child(3) .quick-icon { background: #4a83c5; }
-    .search-status {
-      min-height: 16px;
-      margin: -11px 2px 10px;
-      color: #738188;
-      font-size: 11px;
-    }
     .section-heading {
       display: flex;
       align-items: baseline;
@@ -420,11 +382,7 @@
             <span class="brand-mark" aria-hidden="true">◉</span><span class="brand-copy">Mapa de foco de incendios<br>forestales</span>
           </a>
         </div>
-        <form class="search" id="event-search" role="search">
-          <input id="search-query" type="search" placeholder="Buscar incendio o localidad" aria-label="Buscar incendio o localidad">
-          <button type="submit" aria-label="Buscar">⌕</button>
-        </form>
-        <div class="eyebrow" style="margin-top: 21px;">Perú · Región San Martín</div>
+        <div class="eyebrow" style="margin-top: 0;">Perú · Región San Martín</div>
         <h1>Incendios forestales</h1>
         <p class="intro">
           Explora las detecciones satelitales VIIRS registradas en la región
@@ -456,8 +414,6 @@
           <span>Fuentes</span>
         </a>
       </nav>
-      <p class="search-status" id="search-status" aria-live="polite"></p>
-
       <details class="map-legend" id="cronologia">
         <summary>Leyenda del mapa</summary>
         <div class="legend-content">
@@ -566,36 +522,6 @@
       </iframe>
     </section>
   </main>
-  <script>
-    const searchForm = document.getElementById("event-search");
-    const searchInput = document.getElementById("search-query");
-    const searchStatus = document.getElementById("search-status");
-    const timelineItems = [...document.querySelectorAll(".timeline li")];
-
-    searchForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const query = searchInput.value.trim().toLocaleLowerCase("es");
-      let matches = 0;
-
-      for (const item of timelineItems) {
-        const found = item.textContent.toLocaleLowerCase("es").includes(query);
-        item.hidden = Boolean(query) && !found;
-        if (!query || found) matches += 1;
-      }
-
-      searchStatus.textContent = query
-        ? `${matches} evento${matches === 1 ? "" : "s"} encontrado${matches === 1 ? "" : "s"}.`
-        : "";
-      document.getElementById("cronologia").scrollIntoView({ behavior: "smooth" });
-    });
-
-    searchInput.addEventListener("input", () => {
-      if (!searchInput.value.trim()) {
-        for (const item of timelineItems) item.hidden = false;
-        searchStatus.textContent = "";
-      }
-    });
-  </script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const mapFrame = document.querySelector(".map-panel iframe");
