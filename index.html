@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Mapa interactivo de detecciones satelitales VIIRS en San Martín durante 2024, 2025 y 2026.">
   <title>Incendios en San Martín — Mapa abierto</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
   <style>
     :root {
       color-scheme: light;
@@ -127,7 +128,7 @@
     }
     .quick-links {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 9px;
       margin: 16px 0 19px;
     }
@@ -226,6 +227,76 @@
       color: #7a878c;
       font-size: 11px;
       line-height: 1.5;
+    }
+    .analytics-panel { margin: 20px 0 24px; }
+    .filter-card, .calendar-card, .chart-card {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid #e0e6e8;
+      border-radius: 9px;
+      background: #fbfcfc;
+    }
+    .filter-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .filter-field { display: grid; gap: 5px; color: #53636a; font-size: 11px; font-weight: 700; }
+    .filter-field select {
+      width: 100%;
+      min-height: 36px;
+      padding: 0 9px;
+      border: 1px solid #cfd9dc;
+      border-radius: 6px;
+      background: #fff;
+      color: #344b55;
+      font: inherit;
+      font-weight: 400;
+    }
+    .area-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 11px; }
+    .action-button {
+      min-height: 35px;
+      padding: 7px 10px;
+      border: 1px solid #b9c9ce;
+      border-radius: 6px;
+      background: #fff;
+      color: #31535f;
+      cursor: pointer;
+      font: inherit;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .action-button.primary { border-color: #287252; background: #287252; color: #fff; }
+    .action-button:disabled { cursor: not-allowed; opacity: .5; }
+    .area-status, .analytics-status, .chart-note, .calendar-note {
+      margin: 8px 0 0;
+      color: #68777d;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .calendar-months { display: grid; gap: 5px; margin-top: 10px; }
+    .calendar-row { display: grid; grid-template-columns: 31px repeat(31, minmax(7px, 1fr)); gap: 2px; align-items: center; }
+    .calendar-month-label { color: #53636a; font-size: 10px; font-weight: 700; }
+    .calendar-day, .calendar-empty {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      min-width: 6px;
+      padding: 0;
+      border: 0;
+      border-radius: 2px;
+    }
+    .calendar-day { cursor: pointer; }
+    .calendar-day:focus-visible { outline: 2px solid #176b8d; outline-offset: 1px; }
+    .calendar-day.selected { outline: 2px solid #263238; outline-offset: 1px; }
+    .calendar-day.dimmed { opacity: .28; }
+    .calendar-empty { background: transparent; }
+    .calendar-empty.unavailable {
+      background: repeating-linear-gradient(135deg, #f3f5f6, #f3f5f6 2px, #d6dcdf 2px, #d6dcdf 4px);
+    }
+    .calendar-legend { display: flex; align-items: center; gap: 5px; margin-top: 9px; color: #77858a; font-size: 10px; }
+    .calendar-legend span { width: 10px; height: 10px; border-radius: 2px; }
+    .chart-wrap { position: relative; height: 225px; }
+    .chart-note { margin-top: 8px; }
+    .anomaly-list { margin: 7px 0 0; padding-left: 17px; color: #56656b; font-size: 11px; line-height: 1.5; }
+    @media (max-width: 430px) {
+      .calendar-row { grid-template-columns: 27px repeat(31, minmax(5px, 1fr)); gap: 1px; }
     }
     .map-panel {
       position: relative;
@@ -376,6 +447,10 @@
           <span class="quick-icon" aria-hidden="true">◷</span>
           <span>Cronología</span>
         </a>
+        <a class="quick-link" href="#analisis">
+          <span class="quick-icon" aria-hidden="true">▦</span>
+          <span>Actividad</span>
+        </a>
         <a class="quick-link" href="#fuentes">
           <span class="quick-icon" aria-hidden="true">↗</span>
           <span>Fuentes</span>
@@ -389,12 +464,73 @@
           <p class="legend-title">Puntos VIIRS · FRP (MW)</p>
           <p><span class="legend-symbol legend-green"></span>Hasta 20 · <span class="legend-symbol legend-orange"></span>Más de 20 y hasta 50 · <span class="legend-symbol legend-red"></span>Más de 50.</p>
           <p>FRP es la potencia radiativa del fuego registrada por VIIRS.</p>
-          <p><span class="legend-heat"></span>Mancha de calor: activa la densidad de San Martín 2024, 2025 o 2026 en <strong>Capas</strong>. La densidad nacional histórica de seis fechas de 2024 también está disponible. Muestra concentración, no probabilidad de incendio.</p>
+          <p><span class="legend-heat"></span>Mancha de calor: activa la densidad de San Martín 2024, 2025 o 2026 en <strong>Capas</strong>. Muestra concentración, no probabilidad de incendio.</p>
           <p><span class="legend-boundary"></span>Límite departamental de San Martín.</p>
           <p>Activa o desactiva las capas por año en <strong>Capas</strong>. Los popups muestran coordenadas, fecha, hora, FRP, confianza y satélite; los registros NOAA-20 de 2025 también incluyen localidad y provincia aproximadas.</p>
           <p><strong>2024:</strong> 40.482 detecciones en San Martín. <strong>2025:</strong> 23.273 detecciones en San Martín. <strong>2026:</strong> 13.611 detecciones hasta el 5 de noviembre. Los totales reúnen los satélites disponibles y pueden incluir observaciones del mismo foco; 2026 es un periodo parcial.</p>
         </div>
       </details>
+      <section class="analytics-panel" id="analisis" aria-labelledby="analysis-heading">
+        <div class="section-heading">
+          <h2 id="analysis-heading">Actividad y filtros</h2>
+          <span class="section-note">San Martín · VIIRS</span>
+        </div>
+        <div class="filter-card">
+          <div class="filter-grid">
+            <label class="filter-field" for="filter-year">Año
+              <select id="filter-year">
+                <option value="all">Todos</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026" selected>2026</option>
+              </select>
+            </label>
+            <label class="filter-field" for="filter-month">Mes
+              <select id="filter-month">
+                <option value="">Todos</option>
+                <option value="01">Enero</option><option value="02">Febrero</option>
+                <option value="03">Marzo</option><option value="04">Abril</option>
+                <option value="05">Mayo</option><option value="06">Junio</option>
+                <option value="07">Julio</option><option value="08">Agosto</option>
+                <option value="09">Septiembre</option><option value="10">Octubre</option>
+                <option value="11">Noviembre</option><option value="12">Diciembre</option>
+              </select>
+            </label>
+            <label class="filter-field" for="filter-confidence">Confianza
+              <select id="filter-confidence">
+                <option value="all">Todas</option>
+                <option value="n">Nominal</option>
+                <option value="h">Alta</option>
+                <option value="l">Baja</option>
+              </select>
+            </label>
+          </div>
+          <div class="area-actions">
+            <button class="action-button primary" id="draw-area" type="button">Dibujar área en el mapa</button>
+            <button class="action-button" id="clear-area" type="button" disabled>Quitar área</button>
+            <button class="action-button" id="clear-day" type="button" disabled>Quitar día</button>
+          </div>
+          <p class="area-status" id="area-status" aria-live="polite">Área: toda la región San Martín.</p>
+          <p class="analytics-status" id="filter-status" aria-live="polite">Cargando detecciones…</p>
+        </div>
+
+        <div class="calendar-card">
+          <p class="legend-title">Calendario diario de actividad</p>
+          <p class="calendar-note" id="calendar-summary">Cada cuadro representa un día; pulsa un día para filtrar el mapa.</p>
+          <div class="calendar-months" id="activity-calendar" role="grid" aria-label="Calendario de detecciones diarias"></div>
+          <div class="calendar-legend" aria-label="Intensidad de detecciones">
+            Menos <span style="background:#ebf3ee"></span><span style="background:#b4d5c1"></span><span style="background:#6ea883"></span><span style="background:#287252"></span> Más <span style="background:repeating-linear-gradient(135deg,#f3f5f6,#f3f5f6 2px,#d6dcdf 2px,#d6dcdf 4px)"></span> Sin datos
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <p class="legend-title">Comparación histórica por mes</p>
+          <p class="chart-note">Promedio diario de detecciones por mes y año; el gráfico se actualiza con el área y la confianza seleccionadas.</p>
+          <div class="chart-wrap"><canvas id="monthly-chart" aria-label="Comparación mensual de detecciones VIIRS entre 2024, 2025 y 2026" role="img"></canvas></div>
+          <p class="chart-note">Los días de noviembre de 2026 disponibles son parciales. Se destaca como actividad elevada un promedio mensual al menos 50 % mayor que el promedio del mismo mes en 2024–2025; no es una alerta oficial.</p>
+          <ul class="anomaly-list" id="anomaly-summary"></ul>
+        </div>
+      </section>
       <div class="section-heading">
         <h2 id="fuentes">Fuentes</h2>
         <span class="section-note">Referencias</span>
@@ -423,7 +559,7 @@
     <section class="map-panel" id="mapa" aria-label="Mapa interactivo de focos de incendio">
       <div class="map-toolbar">San Martín <span>· Detecciones VIIRS 2024–2026</span></div>
       <iframe
-        src="./incendios.html?rev=01009b1"
+        src="./incendios.html?rev=actividad-filtros-v1"
         title="Mapa interactivo de detecciones VIIRS 2024–2026 y límite de San Martín"
         loading="eager"
         allowfullscreen>
@@ -458,6 +594,322 @@
         for (const item of timelineItems) item.hidden = false;
         searchStatus.textContent = "";
       }
+    });
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const mapFrame = document.querySelector(".map-panel iframe");
+      const filterYear = document.getElementById("filter-year");
+      const filterMonth = document.getElementById("filter-month");
+      const filterConfidence = document.getElementById("filter-confidence");
+      const filterStatus = document.getElementById("filter-status");
+      const areaStatus = document.getElementById("area-status");
+      const clearAreaButton = document.getElementById("clear-area");
+      const clearDayButton = document.getElementById("clear-day");
+      const calendar = document.getElementById("activity-calendar");
+      const calendarSummary = document.getElementById("calendar-summary");
+      const anomalySummary = document.getElementById("anomaly-summary");
+      const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+      const years = ["2024", "2025", "2026"];
+      const confidenceNames = { l: "baja", n: "nominal", h: "alta" };
+      const filters = { year: filterYear.value, month: filterMonth.value, confidence: filterConfidence.value };
+      let dataset = null;
+      let mapReady = false;
+      let dataSentToMap = false;
+      let areaPolygon = null;
+      let selectedDate = "";
+      let monthlyChart = null;
+
+      const formatCount = (value) => value.toLocaleString("es-PE");
+      const mapWindow = () => mapFrame.contentWindow;
+      const sendToMap = (message) => {
+        if (mapReady && mapWindow()) mapWindow().postMessage(message, window.location.origin);
+      };
+      const sendDatasetToMap = () => {
+        if (!dataset || !mapReady || dataSentToMap) return;
+        sendToMap({ type: "viirs:data", data: dataset });
+        dataSentToMap = true;
+      };
+      const isInsidePolygon = (latitude, longitude, polygon) => {
+        if (!polygon || polygon.length < 3) return true;
+        let inside = false;
+        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+          const [currentLat, currentLon] = polygon[i];
+          const [previousLat, previousLon] = polygon[j];
+          const crosses = (currentLat > latitude) !== (previousLat > latitude)
+            && longitude < ((previousLon - currentLon) * (latitude - currentLat))
+              / (previousLat - currentLat) + currentLon;
+          if (crosses) inside = !inside;
+        }
+        return inside;
+      };
+      const matchesAreaAndConfidence = (record) => {
+        const confidenceMatches = filters.confidence === "all" || record[5] === filters.confidence;
+        return confidenceMatches && isInsidePolygon(record[0], record[1], areaPolygon);
+      };
+      const matchesMapFilters = (record) => {
+        const year = record[2].slice(0, 4);
+        const month = record[2].slice(5, 7);
+        return (filters.year === "all" || year === filters.year)
+          && (!filters.month || month === filters.month)
+          && (!selectedDate || record[2] === selectedDate)
+          && matchesAreaAndConfidence(record);
+      };
+      const updateAreaStatus = () => {
+        const hasArea = Boolean(areaPolygon);
+        areaStatus.textContent = hasArea
+          ? `Área dibujada aplicada (${areaPolygon.length} vértices).`
+          : "Área: toda la región San Martín.";
+        clearAreaButton.disabled = !hasArea;
+      };
+      const getCalendarYear = () => selectedDate ? selectedDate.slice(0, 4) : filters.year === "all" ? "2026" : filters.year;
+
+      const renderCalendar = () => {
+        const calendarYear = getCalendarYear();
+        const dailyCounts = new Map();
+        let maximum = 0;
+        dataset.records[calendarYear].forEach((record) => {
+          if (!matchesAreaAndConfidence(record)) return;
+          dailyCounts.set(record[2], (dailyCounts.get(record[2]) || 0) + 1);
+        });
+        dailyCounts.forEach((count) => { maximum = Math.max(maximum, count); });
+        const colors = ["#ebf3ee", "#b4d5c1", "#6ea883", "#287252"];
+        calendar.replaceChildren();
+
+        for (let monthIndex = 0; monthIndex < 12; monthIndex += 1) {
+          const monthNumber = String(monthIndex + 1).padStart(2, "0");
+          const row = document.createElement("div");
+          row.className = "calendar-row";
+          row.setAttribute("role", "row");
+          const label = document.createElement("span");
+          label.className = "calendar-month-label";
+          label.textContent = monthNames[monthIndex];
+          label.setAttribute("role", "rowheader");
+          row.append(label);
+          const daysInMonth = new Date(Number(calendarYear), monthIndex + 1, 0).getDate();
+          for (let day = 1; day <= 31; day += 1) {
+            if (day > daysInMonth) {
+              const empty = document.createElement("span");
+              empty.className = "calendar-empty";
+              empty.setAttribute("aria-hidden", "true");
+              row.append(empty);
+              continue;
+            }
+            const date = `${calendarYear}-${monthNumber}-${String(day).padStart(2, "0")}`;
+            if (calendarYear === "2026" && date > "2026-11-07") {
+              const unavailable = document.createElement("span");
+              unavailable.className = "calendar-empty unavailable";
+              unavailable.title = `${date}: sin cobertura de datos`;
+              unavailable.setAttribute("aria-label", `${date}, sin cobertura de datos`);
+              row.append(unavailable);
+              continue;
+            }
+            const count = dailyCounts.get(date) || 0;
+            const intensity = maximum ? Math.min(3, Math.ceil((Math.log1p(count) / Math.log1p(maximum)) * 3)) : 0;
+            const cell = document.createElement("button");
+            cell.type = "button";
+            cell.className = `calendar-day${filters.month && filters.month !== monthNumber ? " dimmed" : ""}${selectedDate === date ? " selected" : ""}`;
+            cell.style.backgroundColor = colors[intensity];
+            cell.title = `${date}: ${formatCount(count)} detecciones`;
+            cell.setAttribute("role", "gridcell");
+            cell.setAttribute("aria-label", `${date}, ${formatCount(count)} detecciones`);
+            cell.addEventListener("click", () => {
+              filters.year = calendarYear;
+              filters.month = monthNumber;
+              selectedDate = date;
+              filterYear.value = calendarYear;
+              filterMonth.value = monthNumber;
+              clearDayButton.disabled = false;
+              refreshDashboard();
+            });
+            row.append(cell);
+          }
+          calendar.append(row);
+        }
+        const partial = calendarYear === "2026" ? " · detecciones regionales hasta el 5 nov.; fuentes disponibles hasta el 7 nov" : "";
+        calendarSummary.textContent = `Actividad diaria ${calendarYear}${filters.confidence === "all" ? "" : ` · confianza ${confidenceNames[filters.confidence]}`}${areaPolygon ? " · área dibujada" : ""}${partial}. Pulsa un día para filtrar el mapa.`;
+      };
+
+      const getMonthlyStatistics = () => {
+        const counts = Object.fromEntries(years.map((year) => [year, Array(12).fill(0)]));
+        years.forEach((year) => {
+          dataset.records[year].forEach((record) => {
+            if (!matchesAreaAndConfidence(record)) return;
+            counts[year][Number(record[2].slice(5, 7)) - 1] += 1;
+          });
+        });
+        return counts;
+      };
+      const monthDays = (year, monthIndex) => {
+        if (year === "2026" && monthIndex === 10) return 7;
+        return new Date(Number(year), monthIndex + 1, 0).getDate();
+      };
+      const renderChart = () => {
+        const counts = getMonthlyStatistics();
+        const monthlyRates = Object.fromEntries(years.map((year) => [
+          year,
+          counts[year].map((count, monthIndex) => count / monthDays(year, monthIndex)),
+        ]));
+        if (typeof Chart !== "function") {
+          filterStatus.textContent += " Chart.js no se pudo cargar; el calendario y los filtros siguen disponibles.";
+          return;
+        }
+        const chartData = {
+          labels: monthNames.map((name, index) => index === 10 ? `${name}*` : name),
+          datasets: [
+            { label: "2024", data: monthlyRates["2024"], rawCounts: counts["2024"], coverageDays: counts["2024"].map((_, month) => monthDays("2024", month)), borderColor: "#34814c", backgroundColor: "#34814c", tension: 0.25, pointRadius: 3 },
+            { label: "2025", data: monthlyRates["2025"], rawCounts: counts["2025"], coverageDays: counts["2025"].map((_, month) => monthDays("2025", month)), borderColor: "#d26052", backgroundColor: "#d26052", tension: 0.25, pointRadius: 3 },
+            { label: "2026", data: monthlyRates["2026"], rawCounts: counts["2026"], coverageDays: counts["2026"].map((_, month) => monthDays("2026", month)), borderColor: "#4a83c5", backgroundColor: "#4a83c5", tension: 0.25, pointRadius: 3 },
+          ],
+        };
+        if (!monthlyChart) {
+          monthlyChart = new Chart(document.getElementById("monthly-chart"), {
+            type: "line",
+            data: chartData,
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: "index", intersect: false },
+              plugins: {
+                legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 10 } } },
+                tooltip: {
+                  callbacks: {
+                    label(context) {
+                      const year = context.dataset.label;
+                      const monthIndex = context.dataIndex;
+                      return `${year}: ${formatCount(context.dataset.rawCounts[monthIndex])} detecciones en ${context.dataset.coverageDays[monthIndex]} días (${context.parsed.y.toFixed(1)} por día)`;
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+                y: { beginAtZero: true, title: { display: true, text: "Detecciones por día", font: { size: 10 } }, ticks: { font: { size: 9 } } },
+              },
+            },
+          });
+        } else {
+          monthlyChart.data = chartData;
+          monthlyChart.update();
+        }
+
+        const alerts = [];
+        for (let monthIndex = 0; monthIndex < 10; monthIndex += 1) {
+          const baseline = (monthlyRates["2024"][monthIndex] + monthlyRates["2025"][monthIndex]) / 2;
+          const current = monthlyRates["2026"][monthIndex];
+          if (baseline > 0 && current >= baseline * 1.5) {
+            alerts.push(`${monthNames[monthIndex]}: 2026 supera en ${Math.round((current / baseline - 1) * 100)} % el promedio diario 2024–2025.`);
+          }
+        }
+        anomalySummary.replaceChildren();
+        if (alerts.length) {
+          alerts.forEach((text) => {
+            const item = document.createElement("li");
+            item.textContent = `Actividad elevada · ${text}`;
+            anomalySummary.append(item);
+          });
+        } else {
+          const item = document.createElement("li");
+          item.textContent = "Ningún mes completo de 2026 supera el umbral descriptivo del 50 %.";
+          anomalySummary.append(item);
+        }
+      };
+
+      const refreshDashboard = () => {
+        if (!dataset) return;
+        const mapFilters = {
+          year: filters.year,
+          month: filters.month,
+          date: selectedDate,
+          confidence: filters.confidence,
+          polygon: areaPolygon,
+        };
+        sendToMap({ type: "viirs:filters", filters: mapFilters });
+        let matchingCount = 0;
+        years.forEach((year) => {
+          dataset.records[year].forEach((record) => {
+            if (matchesMapFilters(record)) matchingCount += 1;
+          });
+        });
+        const period = selectedDate || `${filters.year === "all" ? "2024–2026" : filters.year}${filters.month ? ` · mes ${Number(filters.month)}` : ""}`;
+        const confidence = filters.confidence === "all" ? "todas las confianzas" : `confianza ${confidenceNames[filters.confidence]}`;
+        filterStatus.textContent = `${formatCount(matchingCount)} detecciones coinciden con ${period} y ${confidence}${areaPolygon ? " en el área dibujada" : ""}.`;
+        clearDayButton.disabled = !selectedDate;
+        updateAreaStatus();
+        renderCalendar();
+        renderChart();
+      };
+
+      [filterYear, filterMonth, filterConfidence].forEach((control) => {
+        control.addEventListener("change", () => {
+          const previousYear = filters.year;
+          const previousMonth = filters.month;
+          filters.year = filterYear.value;
+          filters.month = filterMonth.value;
+          filters.confidence = filterConfidence.value;
+          if (selectedDate && (filters.year !== previousYear || filters.month !== previousMonth)) selectedDate = "";
+          refreshDashboard();
+        });
+      });
+      clearDayButton.addEventListener("click", () => {
+        selectedDate = "";
+        refreshDashboard();
+      });
+      document.getElementById("draw-area").addEventListener("click", () => {
+        if (!mapReady) {
+          areaStatus.textContent = "El mapa todavía se está preparando. Intenta de nuevo en unos segundos.";
+          return;
+        }
+        sendToMap({ type: "viirs:start-draw" });
+        areaStatus.textContent = "Haz clic para colocar los vértices y doble clic para terminar el polígono.";
+      });
+      clearAreaButton.addEventListener("click", () => {
+        areaPolygon = null;
+        sendToMap({ type: "viirs:clear-area" });
+        refreshDashboard();
+      });
+      window.addEventListener("message", (event) => {
+        if (event.origin !== window.location.origin || event.source !== mapWindow()) return;
+        const message = event.data;
+        if (!message || typeof message.type !== "string") return;
+        if (message.type === "viirs:ready") {
+          mapReady = true;
+          sendDatasetToMap();
+          refreshDashboard();
+        } else if (message.type === "viirs:area-changed") {
+          areaPolygon = Array.isArray(message.polygon) ? message.polygon : null;
+          refreshDashboard();
+        } else if (message.type === "viirs:map-status" && message.error) {
+          filterStatus.textContent = `Error del mapa: ${message.error}`;
+        }
+      });
+      mapFrame.addEventListener("load", () => {
+        mapReady = true;
+        sendDatasetToMap();
+        refreshDashboard();
+      });
+
+      fetch("./datos_viirs_san_martin_2024_2026.json?rev=actividad-filtros-v1")
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.json();
+        })
+        .then((data) => {
+          if (!data || !data.records || !data.coverage) throw new Error("El archivo de datos no tiene el formato esperado.");
+          years.forEach((year) => {
+            if (!Array.isArray(data.records[year]) || data.records[year].length !== data.coverage[year].count) {
+              throw new Error(`Los datos de ${year} están incompletos.`);
+            }
+          });
+          dataset = data;
+          filterStatus.textContent = "Datos cargados; calculando calendario y estadísticas…";
+          refreshDashboard();
+          sendDatasetToMap();
+        })
+        .catch((error) => {
+          console.error("No se pudieron cargar los datos de actividad VIIRS:", error);
+          filterStatus.textContent = "Error al cargar los datos VIIRS. Verifica tu conexión y vuelve a cargar la página.";
+        });
     });
   </script>
 </body>
