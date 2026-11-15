@@ -243666,28 +243666,6 @@
     });
     pointLayers["2026"].addTo(viirsMap);
 
-    const periodControl = L.control({ position: "topright" });
-    periodControl.onAdd = function () {
-        const container = L.DomUtil.create("div", "leaflet-control");
-        container.style.cssText = "min-width:150px;padding:8px 10px;background:#fff;border:1px solid #cbd4d8;border-radius:4px;color:#344b55;font:12px/1.4 Arial,sans-serif;box-shadow:0 1px 5px #0002";
-        container.innerHTML = `<label style="display:block;margin:0 0 6px;font-weight:600">A\u00f1o<select id="map-filter-year" aria-label="Filtrar mapa por a\u00f1o" style="display:block;width:100%;margin-top:2px"><option value="all">Todos</option>${years.map((year) => `<option value="${year}">${year}</option>`).join("")}</select></label>`
-            + `<label style="display:block;margin:0;font-weight:600">Mes<select id="map-filter-month" aria-label="Filtrar mapa por mes" style="display:block;width:100%;margin-top:2px"><option value="">Todos</option><option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></label>`;
-        L.DomEvent.disableClickPropagation(container);
-        L.DomEvent.disableScrollPropagation(container);
-        this._container = container;
-        return container;
-    };
-    periodControl.addTo(viirsMap);
-    const mapYearSelect = periodControl.getContainer().querySelector("#map-filter-year");
-    const mapMonthSelect = periodControl.getContainer().querySelector("#map-filter-month");
-    const notifyParentOfPeriodChange = () => sendToParent({
-        type: "viirs:map-period-changed",
-        year: mapYearSelect.value,
-        month: mapMonthSelect.value,
-    });
-    mapYearSelect.addEventListener("change", notifyParentOfPeriodChange);
-    mapMonthSelect.addEventListener("change", notifyParentOfPeriodChange);
-
     const renderPopup = (record) => {
         const [latitude, longitude, date, time, frp, confidence, satellite, locality, distance, province] = record;
         const localityDetails = `<br><strong>Localidad m\u00e1s cercana:</strong> ${locality ? `${escapeText(locality)}${Number.isFinite(distance) ? ` (${distance.toFixed(1)} km)` : ""}` : "No disponible en los datos"}`
@@ -243811,8 +243789,6 @@
                 || !["all", "l", "n", "h"].includes(next.confidence)
                 || (next.polygon && !isValidPolygon(next.polygon))) return;
             filters = { ...next, month: next.month || "", date: next.date || "", polygon: next.polygon || null };
-            mapYearSelect.value = filters.year;
-            mapMonthSelect.value = filters.month;
             applyFilters();
         } else if (message.type === "viirs:start-draw") {
             if (drawPolygon) drawPolygon.enable();
