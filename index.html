@@ -3,39 +3,55 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Mapa interactivo de detecciones satelitales VIIRS en San Martín durante 2024, 2025 y 2026.">
-  <title>Incendios en San Martín — Mapa abierto</title>
+  <meta name="description" content="Calendario y mapa interactivo de actividad de focos de calor VIIRS en San Martín. Explora patrones históricos por fecha y área seleccionada.">
+  <title>Calendario de actividad de incendios en San Martín</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
   <style>
     :root {
-      color-scheme: light;
+      color-scheme: dark;
       font-family: Arial, Helvetica, sans-serif;
-      color: #263238;
-      background: #f3f5f6;
+      color: #ebf2f8;
+      background: #0b1220;
       font-synthesis: none;
+      --bg: #0b1220;
+      --bg-strong: #111b2b;
+      --panel: #121d2d;
+      --panel-2: #1a2a3d;
+      --panel-3: #172737;
+      --line: #2a3c53;
+      --line-soft: #233447;
+      --text: #ebf2f8;
+      --text-soft: #a9b9c7;
+      --text-muted: #7d8ea0;
+      --accent: #70d6a3;
+      --accent-2: #52a5ff;
+      --warning: #f4b860;
+      --danger: #ff7b72;
+      --shadow: rgba(5, 10, 18, 0.7);
     }
     * { box-sizing: border-box; }
-    body { margin: 0; min-width: 320px; }
-    a { color: #176b8d; }
+    body { margin: 0; min-width: 320px; background: var(--bg); color: var(--text); }
+    a { color: #8ecbff; }
     .workspace {
       height: 100vh;
       min-height: 580px;
       display: grid;
       grid-template-columns: minmax(390px, 42%) minmax(0, 1fr);
+      background: var(--bg);
     }
     .sidebar {
       min-height: 0;
       overflow-y: auto;
-      background: #fff;
-      border-right: 1px solid #dfe4e6;
+      background: var(--bg);
+      border-right: 1px solid var(--line);
       padding: 0 24px 32px;
     }
     .side-header {
       position: relative;
       margin: 0 -24px 18px;
       padding: 18px 24px 16px;
-      background: linear-gradient(180deg, #e6e8e8 0%, #f5f6f6 76%, #fff 100%);
-      border-bottom: 1px solid #e6e9ea;
+      background: linear-gradient(180deg, #172335 0%, #0f1726 76%, #0b1220 100%);
+      border-bottom: 1px solid var(--line-soft);
     }
     .brand-row {
       display: flex;
@@ -44,7 +60,7 @@
       margin-bottom: 16px;
     }
     .brand {
-      color: #37474f;
+      color: #f1f6fb;
       font-size: 19px;
       font-weight: 750;
       letter-spacing: -.04em;
@@ -70,27 +86,27 @@
     }
     .side-header h1 {
       margin: 0 0 7px;
-      color: #343d41;
+      color: #edf5ff;
       font-size: 23px;
       line-height: 1.18;
     }
     .side-header .intro { max-width: 520px; }
     }
     .eyebrow {
-      color: #74858c;
+      color: #a1afbc;
       font-size: 11px;
       font-weight: 700;
       letter-spacing: .1em;
       text-transform: uppercase;
     }
-    .intro { margin: 0; color: #637178; font-size: 13px; line-height: 1.5; }
+    .intro { margin: 0; color: var(--text-soft); font-size: 13px; line-height: 1.5; }
     .historical {
       margin: 16px 0;
       padding: 11px 13px;
-      border: 1px solid #f0dfbd;
+      border: 1px solid rgba(244, 184, 96, 0.4);
       border-radius: 7px;
-      background: #fffaf0;
-      color: #765324;
+      background: rgba(244, 184, 96, 0.08);
+      color: #f5dca5;
       font-size: 12px;
       line-height: 1.45;
     }
@@ -107,15 +123,15 @@
       align-items: center;
       justify-content: center;
       gap: 5px;
-      border: 1px solid #e0e4e6;
+      border: 1px solid var(--line);
       border-radius: 14px;
-      background: linear-gradient(#fff, #f7f8f8);
-      box-shadow: 0 2px 6px #20343d0d;
-      color: #526168;
+      background: linear-gradient(180deg, #172737 0%, #121d2d 100%);
+      box-shadow: 0 2px 6px var(--shadow);
+      color: var(--text-soft);
       font-size: 11px;
       text-decoration: none;
     }
-    .quick-link:hover { border-color: #b6c8ce; background: #f0f6f7; }
+    .quick-link:hover { border-color: #4d6680; background: #16273d; }
     .quick-icon {
       display: grid;
       width: 29px;
@@ -135,20 +151,20 @@
       justify-content: space-between;
       margin: 22px 0 12px;
       padding-bottom: 8px;
-      border-bottom: 1px solid #e8edef;
+      border-bottom: 1px solid var(--line);
     }
-    h2 { margin: 0; color: #344b55; font-size: 16px; }
-    .section-note { color: #849197; font-size: 11px; }
+    h2 { margin: 0; color: #edf4ff; font-size: 16px; }
+    .section-note { color: var(--text-muted); font-size: 11px; }
     .timeline {
       list-style: none;
       margin: 0;
       padding: 0 0 0 14px;
-      border-left: 2px solid #dce8e9;
+      border-left: 2px solid var(--line);
     }
     .timeline li {
       position: relative;
       padding: 0 0 16px 13px;
-      color: #56656b;
+      color: var(--text-soft);
       font-size: 12px;
       line-height: 1.5;
     }
@@ -168,14 +184,14 @@
     .event-date {
       display: block;
       margin-bottom: 2px;
-      color: #364d57;
+      color: #f0f5ff;
       font-size: 12px;
       font-weight: 700;
     }
     .sources {
       margin: 0;
       padding-left: 17px;
-      color: #66757b;
+      color: var(--text-soft);
       font-size: 11px;
       line-height: 1.5;
     }
@@ -185,8 +201,8 @@
     .data-note {
       margin-top: 20px;
       padding-top: 13px;
-      border-top: 1px solid #e8edef;
-      color: #7a878c;
+      border-top: 1px solid var(--line);
+      color: var(--text-muted);
       font-size: 11px;
       line-height: 1.5;
     }
@@ -194,20 +210,20 @@
     .filter-card, .calendar-card, .chart-card {
       margin-top: 12px;
       padding: 12px;
-      border: 1px solid #e0e6e8;
+      border: 1px solid var(--line);
       border-radius: 9px;
-      background: #fbfcfc;
+      background: linear-gradient(180deg, #121d2d 0%, #101b2a 100%);
     }
     .filter-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    .filter-field { display: grid; gap: 5px; color: #53636a; font-size: 11px; font-weight: 700; }
+    .filter-field { display: grid; gap: 5px; color: var(--text-soft); font-size: 11px; font-weight: 700; }
     .filter-field select {
       width: 100%;
       min-height: 36px;
       padding: 0 9px;
-      border: 1px solid #cfd9dc;
+      border: 1px solid var(--line);
       border-radius: 6px;
-      background: #fff;
-      color: #344b55;
+      background: var(--panel-3);
+      color: var(--text);
       font: inherit;
       font-weight: 400;
     }
@@ -215,10 +231,10 @@
     .action-button {
       min-height: 35px;
       padding: 7px 10px;
-      border: 1px solid #b9c9ce;
+      border: 1px solid var(--line);
       border-radius: 6px;
-      background: #fff;
-      color: #31535f;
+      background: var(--panel-3);
+      color: var(--text);
       cursor: pointer;
       font: inherit;
       font-size: 11px;
@@ -228,7 +244,7 @@
     .action-button:disabled { cursor: not-allowed; opacity: .5; }
     .area-status, .analytics-status, .chart-note, .calendar-note {
       margin: 8px 0 0;
-      color: #68777d;
+      color: var(--text-soft);
       font-size: 11px;
       line-height: 1.45;
     }
@@ -254,11 +270,115 @@
     }
     .calendar-legend { display: flex; align-items: center; gap: 5px; margin-top: 9px; color: #77858a; font-size: 10px; }
     .calendar-legend span { width: 10px; height: 10px; border-radius: 2px; }
+    .calendar-details {
+      margin-top: 12px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel-3);
+    }
+    .activity-watch {
+      margin-top: 12px;
+      padding: 11px 12px;
+      border: 1px solid rgba(110, 168, 131, 0.35);
+      border-left: 4px solid #6ea883;
+      border-radius: 7px;
+      background: rgba(110, 168, 131, 0.08);
+      color: var(--text-soft);
+      font-size: 11px;
+      line-height: 1.5;
+      transition: all 0.2s ease;
+    }
+    .activity-watch strong { color: #edf5ff; }
+    .activity-watch.elevated {
+      border-color: rgba(255, 140, 92, 0.6);
+      border-left-color: #ff8c5a;
+      background: linear-gradient(180deg, rgba(255, 140, 92, 0.14), rgba(255, 102, 69, 0.08));
+      box-shadow: inset 0 0 0 1px rgba(255, 140, 92, 0.18);
+    }
+    .activity-watch .alert-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      width: fit-content;
+      padding: 5px 10px;
+      margin-bottom: 8px;
+      border-radius: 999px;
+      background: rgba(255, 102, 69, 0.18);
+      color: #ffd9cc;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255, 140, 92, 0.35);
+    }
+    .activity-watch .alert-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      margin-top: 8px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(110, 168, 131, 0.12);
+      color: #d6f0dd;
+      border: 1px solid rgba(110, 168, 131, 0.25);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .calendar-details p { margin: 0; color: var(--text-soft); font-size: 11px; line-height: 1.45; }
+    .weather-details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+      margin: 0;
+    }
+    .weather-details div { min-width: 0; }
+    .weather-details dt { color: var(--text-muted); font-size: 10px; }
+    .weather-details dd { margin: 3px 0 0; color: #edf5ff; font-size: 12px; font-weight: 700; }
+    .weather-note { margin: 9px 0 0; color: var(--text-soft); font-size: 10px; line-height: 1.45; }
+    .risk-summary {
+      margin-top: 11px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .risk-low { background: rgba(110, 168, 131, 0.12); color: #bfe4c8; }
+    .risk-moderate { background: rgba(244, 184, 96, 0.12); color: #f5dca5; }
+    .risk-high { background: rgba(232, 117, 50, 0.12); color: #f7bd8c; }
+    .risk-extreme { background: rgba(255, 123, 114, 0.12); color: #ffb2aa; }
+    .risk-breakdown { width: 100%; margin-top: 8px; border-collapse: collapse; color: var(--text-soft); font-size: 10px; }
+    .risk-breakdown th, .risk-breakdown td { padding: 5px 6px; border: 1px solid var(--line); text-align: left; }
+    .risk-breakdown th { background-color: #182638; color: #edf5ff; }
+    .risk-breakdown td:last-child, .risk-breakdown th:last-child { text-align: right; white-space: nowrap; }
     .chart-wrap { position: relative; height: 225px; }
     .chart-note { margin-top: 8px; }
-    .anomaly-list { margin: 7px 0 0; padding-left: 17px; color: #56656b; font-size: 11px; line-height: 1.5; }
+    .anomaly-list { margin: 7px 0 0; padding-left: 17px; color: var(--text-soft); font-size: 11px; line-height: 1.5; }
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .forecast-card {
+      min-width: 0;
+      padding: 11px 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, #172737 0%, #121d2d 100%);
+      text-align: center;
+    }
+    .forecast-year { color: var(--text-soft); font-size: 11px; font-weight: 700; }
+    .forecast-estimate { display: block; margin: 7px 0 5px; color: #a7e8c1; font-size: 18px; font-weight: 750; }
+    .forecast-range { color: var(--text-muted); font-size: 10px; line-height: 1.4; }
+    .forecast-method { margin-top: 10px; }
     @media (max-width: 430px) {
       .calendar-row { grid-template-columns: 27px repeat(31, minmax(5px, 1fr)); gap: 1px; }
+      .forecast-grid { gap: 5px; }
+      .forecast-card { padding: 9px 5px; }
+      .forecast-estimate { font-size: 16px; }
     }
     .map-panel {
       position: relative;
@@ -272,28 +392,28 @@
       left: 16px;
       z-index: 1;
       padding: 9px 13px;
-      border: 1px solid #dfe4e6;
+      border: 1px solid var(--line);
       border-radius: 6px;
-      background: #fff;
-      box-shadow: 0 2px 9px #20343d20;
-      color: #40545c;
+      background: rgba(18, 29, 45, 0.88);
+      box-shadow: 0 2px 9px var(--shadow);
+      color: #edf5ff;
       font-size: 12px;
       font-weight: 650;
       pointer-events: none;
     }
-    .map-toolbar span { color: #77868b; font-weight: 400; }
+    .map-toolbar span { color: var(--text-muted); font-weight: 400; }
     .map-legend {
       margin: 0 0 14px;
-      color: #40545c;
+      color: var(--text-soft);
       font-size: 11px;
     }
     .map-legend summary {
       width: fit-content;
       padding: 9px 12px;
-      border: 1px solid #dfe4e6;
+      border: 1px solid var(--line);
       border-radius: 7px;
-      background: #fff;
-      box-shadow: 0 2px 9px #20343d20;
+      background: var(--panel-2);
+      box-shadow: 0 2px 9px var(--shadow);
       cursor: pointer;
       font-size: 12px;
       font-weight: 700;
@@ -304,15 +424,15 @@
     .legend-content {
       margin-top: 7px;
       padding: 12px;
-      border: 1px solid #dfe4e6;
+      border: 1px solid var(--line);
       border-radius: 8px;
-      background: #fff;
-      box-shadow: 0 2px 9px #20343d20;
+      background: var(--panel-2);
+      box-shadow: 0 2px 9px var(--shadow);
       line-height: 1.45;
     }
     .legend-content p { margin: 0 0 9px; }
     .legend-content p:last-child { margin-bottom: 0; }
-    .legend-title { color: #344b55; font-weight: 700; }
+    .legend-title { color: #edf5ff; font-weight: 700; }
     .legend-symbol {
       display: inline-block;
       width: 10px;
@@ -385,15 +505,17 @@
         <div class="eyebrow" style="margin-top: 0;">Perú · Región San Martín</div>
         <h1>Incendios forestales</h1>
         <p class="intro">
-          Explora las detecciones satelitales VIIRS registradas en la región
-          entre 2024 y 2026.
+          Organiza las detecciones satelitales VIIRS en un calendario de
+          actividad para explorar patrones históricos, días inusuales y
+          periodos críticos en el área que selecciones.
         </p>
       </header>
 
       <p class="historical">
         <strong>Datos históricos:</strong> el mapa reúne detecciones VIIRS de
-        2024, 2025 y 2026. Una detección no equivale por sí sola a un incendio
-        confirmado; distintos satélites pueden registrar el mismo foco.
+        San Martín entre 2024 y 2026. Los archivos de años anteriores del
+        repositorio son meteorológicos, no registros VIIRS de incendios.
+        Una detección no equivale por sí sola a un incendio confirmado.
       </p>
 
       <nav class="quick-links" aria-label="Accesos rápidos">
@@ -472,11 +594,24 @@
 
         <div class="calendar-card">
           <p class="legend-title">Calendario diario de actividad</p>
-          <p class="calendar-note" id="calendar-summary">Cada cuadro representa un día; pulsa un día para filtrar el mapa.</p>
+          <p class="calendar-note" id="calendar-summary">Cada cuadro resume los focos detectados en el área seleccionada. Pulsa un día para ver sus detecciones y condiciones históricas.</p>
+          <div class="activity-watch" id="activity-watch" role="status" aria-live="polite">Calculando actividad reciente…</div>
+          <section class="forecast-panel" id="pronostico" aria-labelledby="forecast-heading">
+            <p class="legend-title" id="forecast-heading">Escenario de referencia 2027–2029</p>
+            <p class="chart-note">Proyección exploratoria de detecciones VIIRS por año; se actualiza con el área y la confianza seleccionadas.</p>
+            <div class="forecast-grid" id="forecast-grid" aria-live="polite">
+              <p class="chart-note">Calculando escenario con los datos disponibles…</p>
+            </div>
+            <p class="chart-note forecast-method" id="forecast-method"></p>
+          </section>
           <div class="calendar-months" id="activity-calendar" role="grid" aria-label="Calendario de detecciones diarias"></div>
           <div class="calendar-legend" aria-label="Intensidad de detecciones">
             Menos <span style="background:#ebf3ee"></span><span style="background:#b4d5c1"></span><span style="background:#6ea883"></span><span style="background:#287252"></span> Más <span style="background:repeating-linear-gradient(135deg,#f3f5f6,#f3f5f6 2px,#d6dcdf 2px,#d6dcdf 4px)"></span> Sin datos
           </div>
+          <div class="calendar-details" id="calendar-day-details" aria-live="polite">
+            <p>Selecciona un día para consultar sus detecciones y condiciones meteorológicas.</p>
+          </div>
+          <p class="weather-note">Clima: promedio diario de San Martín en cuatro localidades de referencia. El índice es experimental, histórico y regional; no es una alerta oficial ni se recalcula para el área dibujada. Los días secos registran menos de 1 mm. La probabilidad procede de pronósticos históricos, no representa el clima actual y puede no estar disponible.</p>
         </div>
 
         <div class="chart-card">
@@ -500,6 +635,7 @@
         <li><a href="https://github.com/wmgeolab/geoBoundaries/tree/9469f09/releaseData/gbOpen/PER/ADM2">geoBoundaries — Límites provinciales del Perú (ADM2, CC BY 3.0 IGO), usados para mostrar el lugar aproximado de cada foco.</a></li>
         <li><a href="https://www.geonames.org/">GeoNames — Base geográfica de localidades (CC BY 4.0); se usa para indicar la localidad poblada más cercana y su distancia aproximada.</a></li>
         <li><a href="https://firms.modaps.eosdis.nasa.gov/download/">NASA FIRMS — Datos de focos activos VIIRS (NOAA-20, NOAA-21 y Suomi-NPP).</a></li>
+        <li><a href="https://open-meteo.com/en/docs/historical-weather-api">Open-Meteo — Archivo histórico ERA5-Land de temperatura, humedad, viento, precipitación y humedad del suelo.</a> <a href="https://open-meteo.com/en/docs/historical-forecast-api">Archivo de pronósticos históricos</a> para probabilidad de precipitación y CAPE.</li>
       </ol>
 
       <p class="data-note">
@@ -534,12 +670,22 @@
       const clearDayButton = document.getElementById("clear-day");
       const calendar = document.getElementById("activity-calendar");
       const calendarSummary = document.getElementById("calendar-summary");
+      const activityWatch = document.getElementById("activity-watch");
+      const calendarDayDetails = document.getElementById("calendar-day-details");
       const anomalySummary = document.getElementById("anomaly-summary");
       const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
       const years = ["2024", "2025", "2026"];
       const confidenceNames = { l: "baja", n: "nominal", h: "alta" };
+      const getAvailableYears = () => {
+        if (!dataset || !dataset.records) return [];
+        return years.filter((year) => Array.isArray(dataset.records[year]));
+      };
+      const getYearRecords = (year) => (dataset && dataset.records && Array.isArray(dataset.records[year]) ? dataset.records[year] : []);
       const filters = { year: filterYear.value, month: filterMonth.value, confidence: filterConfidence.value };
       let dataset = null;
+      let weatherDataset = null;
+      let weatherLoadError = null;
+      const dryStreakByDate = new Map();
       let mapReady = false;
       let dataSentToMap = false;
       let areaPolygon = null;
@@ -589,12 +735,242 @@
         clearAreaButton.disabled = !hasArea;
       };
       const getCalendarYear = () => selectedDate ? selectedDate.slice(0, 4) : filters.year === "all" ? "2026" : filters.year;
+      const formatWeatherValue = (value, unit, digits = 1) => (
+        Number.isFinite(value) ? `${value.toLocaleString("es-PE", { minimumFractionDigits: digits, maximumFractionDigits: digits })} ${unit}` : "No disponible"
+      );
+      const getRiskIndex = (weather) => {
+        const inputs = [
+          weather?.temperatureMeanC,
+          weather?.relativeHumidityMeanPct,
+          weather?.windSpeedMeanKmh,
+          weather?.precipitationMm,
+        ];
+        if (!inputs.every(Number.isFinite)) return null;
+        const points = {
+          temperature: weather.temperatureMeanC < 25 ? 0 : weather.temperatureMeanC < 30 ? 10 : weather.temperatureMeanC <= 35 ? 20 : 30,
+          humidity: weather.relativeHumidityMeanPct > 70 ? 0 : weather.relativeHumidityMeanPct >= 50 ? 10 : weather.relativeHumidityMeanPct >= 30 ? 20 : 30,
+          wind: weather.windSpeedMeanKmh < 10 ? 0 : weather.windSpeedMeanKmh < 20 ? 10 : weather.windSpeedMeanKmh <= 30 ? 20 : 30,
+          precipitation: weather.precipitationMm > 20 ? 0 : weather.precipitationMm >= 10 ? 5 : weather.precipitationMm >= 5 ? 10 : 20,
+        };
+        const rawScore = Object.values(points).reduce((total, value) => total + value, 0);
+        const score = Math.min(100, rawScore);
+        const level = score <= 25 ? "Bajo" : score <= 50 ? "Moderado" : score <= 75 ? "Alto" : "Extremo";
+        const levelClass = { Bajo: "low", Moderado: "moderate", Alto: "high", Extremo: "extreme" }[level];
+        return { score, rawScore, level, levelClass, points };
+      };
+      const getWeatherDescription = (date) => {
+        const weather = weatherDataset?.daily?.[date];
+        if (!weather) return weatherLoadError
+          ? "Clima no disponible"
+          : weatherDataset ? "Clima sin cobertura para esta fecha" : "Clima cargando";
+        const risk = getRiskIndex(weather);
+        return `${formatWeatherValue(weather.temperatureMeanC, "°C")}, humedad ${formatWeatherValue(weather.relativeHumidityMeanPct, "%")}, viento ${formatWeatherValue(weather.windSpeedMeanKmh, "km/h")}, lluvia 24 h ${formatWeatherValue(weather.precipitationMm, "mm")}${risk ? `; riesgo ${risk.level} (${risk.score}/100)` : ""}`;
+      };
+      const renderCalendarDayDetails = () => {
+        if (!selectedDate || !dataset) {
+          calendarDayDetails.replaceChildren();
+          const prompt = document.createElement("p");
+          prompt.textContent = "Selecciona un día para consultar sus detecciones y condiciones meteorológicas.";
+          calendarDayDetails.append(prompt);
+          return;
+        }
+        const year = selectedDate.slice(0, 4);
+        const count = getYearRecords(year).reduce((total, record) => (
+          record[2] === selectedDate && matchesAreaAndConfidence(record) ? total + 1 : total
+        ), 0);
+        const weather = weatherDataset?.daily?.[selectedDate];
+        const unavailableWeather = weatherLoadError
+          ? "Clima no disponible"
+          : weatherDataset ? "Sin datos para esta fecha" : "Cargando clima…";
+        const detectionLabel = count === 1 ? "1 detección" : `${formatCount(count)} detecciones`;
+        const details = document.createElement("dl");
+        details.className = "weather-details";
+        const risk = weather ? getRiskIndex(weather) : null;
+        const items = [
+          ["Puntos de calor VIIRS", count ? `Sí · ${detectionLabel}` : "No se registraron detecciones en los datos"],
+          ["Temperatura media / máxima / mínima", weather
+            ? `${formatWeatherValue(weather.temperatureMeanC, "°C")} / ${formatWeatherValue(weather.temperatureMaxC, "°C")} / ${formatWeatherValue(weather.temperatureMinC, "°C")}`
+            : unavailableWeather],
+          ["Humedad relativa media", weather
+            ? formatWeatherValue(weather.relativeHumidityMeanPct, "%")
+            : unavailableWeather],
+          ["Viento medio / máximo a 10 m", weather
+            ? `${formatWeatherValue(weather.windSpeedMeanKmh, "km/h")} / ${formatWeatherValue(weather.windSpeedMaxKmh, "km/h")}`
+            : unavailableWeather],
+          ["Probabilidad de precipitación (máx. diaria)", weather
+            ? formatWeatherValue(weather.precipitationProbability, "%")
+            : unavailableWeather],
+          ["Lluvia últimas 24 h (reanálisis)", weather
+            ? formatWeatherValue(weather.precipitationMm, "mm")
+            : unavailableWeather],
+          ["Lluvia últimos 7 días (hoy + 6 previos)", weather
+            ? formatWeatherValue(weather.precipitation7dMm, "mm")
+            : unavailableWeather],
+          ["Días consecutivos sin lluvia (<1 mm/día)", weather
+            ? Number.isFinite(dryStreakByDate.get(selectedDate)) ? `${dryStreakByDate.get(selectedDate)} días` : "No disponible"
+            : unavailableWeather],
+          ["Humedad del suelo (0–7 cm, volumétrica)", weather
+            ? formatWeatherValue(weather.soilMoisture0To7cmPct, "%")
+            : unavailableWeather],
+          ["CAPE medio / máximo", weather
+            ? `${formatWeatherValue(weather.capeMeanJkg, "J/kg", 0)} / ${formatWeatherValue(weather.capeMaxJkg, "J/kg", 0)}`
+            : unavailableWeather],
+        ];
+        items.forEach(([label, value]) => {
+          const item = document.createElement("div");
+          const term = document.createElement("dt");
+          const description = document.createElement("dd");
+          term.textContent = label;
+          description.textContent = value;
+          item.append(term, description);
+          details.append(item);
+        });
+        let riskBreakdown = null;
+        if (risk) {
+          const riskSummary = document.createElement("div");
+          riskSummary.className = `risk-summary risk-${risk.levelClass}`;
+          riskSummary.textContent = `Índice meteorológico experimental: ${risk.score}/100 · ${risk.level}${risk.rawScore > 100 ? ` (suma ${risk.rawScore}, limitada a 100)` : ""}`;
+          const table = document.createElement("table");
+          table.className = "risk-breakdown";
+          table.setAttribute("aria-label", "Desglose de puntos del índice meteorológico");
+          const head = document.createElement("thead");
+          const headerRow = document.createElement("tr");
+          ["Factor", "Valor diario regional", "Puntos"].forEach((label) => {
+            const cell = document.createElement("th");
+            cell.scope = "col";
+            cell.textContent = label;
+            headerRow.append(cell);
+          });
+          head.append(headerRow);
+          table.append(head);
+          const body = document.createElement("tbody");
+          [
+            ["Temperatura media", formatWeatherValue(weather.temperatureMeanC, "°C"), risk.points.temperature],
+            ["Humedad relativa media", formatWeatherValue(weather.relativeHumidityMeanPct, "%"), risk.points.humidity],
+            ["Viento medio a 10 m", formatWeatherValue(weather.windSpeedMeanKmh, "km/h"), risk.points.wind],
+            ["Lluvia de 24 h", formatWeatherValue(weather.precipitationMm, "mm"), risk.points.precipitation],
+          ].forEach(([factor, value, points]) => {
+            const row = document.createElement("tr");
+            [factor, value, `${points} pts`].forEach((text, index) => {
+              if (index === 0) {
+                const heading = document.createElement("th");
+                heading.scope = "row";
+                heading.textContent = text;
+                row.append(heading);
+                return;
+              }
+              const cell = document.createElement("td");
+              cell.textContent = text;
+              row.append(cell);
+            });
+            body.append(row);
+          });
+          table.append(body);
+          riskBreakdown = document.createElement("div");
+          riskBreakdown.append(riskSummary, table);
+        }
+        const note = document.createElement("p");
+        note.className = "weather-note";
+        note.textContent = `${selectedDate} · Índice basado en promedios diarios regionales; humedad del suelo y CAPE son variables de contexto y no suman al puntaje. La detección VIIRS es un punto de calor satelital y no confirma por sí sola un incendio único.`;
+        calendarDayDetails.replaceChildren(...(riskBreakdown ? [details, riskBreakdown, note] : [details, note]));
+      };
+
+      const renderRecentActivity = () => {
+        const availableYears = getAvailableYears();
+        const currentYear = availableYears.at(-1) || "2026";
+        const latestDate = dataset.coverage?.[currentYear]?.to;
+        if (!latestDate) {
+          activityWatch.textContent = "No se pudo determinar la fecha de las detecciones más recientes.";
+          return;
+        }
+        const lastDay = new Date(`${latestDate}T00:00:00Z`);
+        const firstDay = new Date(lastDay);
+        firstDay.setUTCDate(firstDay.getUTCDate() - 6);
+        const startDate = firstDay.toISOString().slice(0, 10);
+        const countRange = (year, from, to) => getYearRecords(year).reduce((total, record) => (
+          record[2] >= from && record[2] <= to && matchesAreaAndConfidence(record) ? total + 1 : total
+        ), 0);
+        const currentCount = countRange(currentYear, startDate, latestDate);
+        const currentDays = new Set(getYearRecords(currentYear).filter((record) => record[2] >= startDate && record[2] <= latestDate && matchesAreaAndConfidence(record)).map((record) => record[2])).size;
+        const referenceYears = availableYears.filter((year) => year !== currentYear).slice(-2);
+        const comparableRanges = referenceYears.map((year) => {
+          const from = `${year}${startDate.slice(4)}`;
+          const to = `${year}${latestDate.slice(4)}`;
+          return countRange(year, from, to) / 7;
+        });
+        const baselinePerDay = comparableRanges.length
+          ? comparableRanges.reduce((sum, value) => sum + value, 0) / comparableRanges.length
+          : 0;
+        const currentPerDay = currentCount / 7;
+        const elevated = currentCount >= 5 && baselinePerDay > 0 && currentPerDay >= baselinePerDay * 1.5;
+        activityWatch.classList.toggle("elevated", elevated);
+        const currentRate = currentPerDay.toLocaleString("es-PE", { maximumFractionDigits: 1 });
+        const baselineRate = baselinePerDay.toLocaleString("es-PE", { maximumFractionDigits: 1 });
+        activityWatch.replaceChildren();
+        const heading = document.createElement("strong");
+        heading.textContent = elevated
+          ? "Aviso: actividad reciente por encima de lo habitual"
+          : "Comparación histórica sin aumento inusual en los últimos 7 días";
+
+        const banner = document.createElement("div");
+        banner.className = "alert-banner";
+        banner.textContent = elevated ? "⚠ Aviso comparativo" : "ℹ Información histórica";
+
+        const pill = document.createElement("div");
+        pill.className = "alert-pill";
+        pill.textContent = elevated ? "Riesgo relativo: alto" : "Riesgo relativo: normal";
+
+        const description = document.createElement("span");
+        const referenceText = referenceYears.length ? `promedio de las mismas fechas en ${referenceYears.join(" y ")}` : "referencia histórica disponible";
+        description.textContent = ` · ${formatCount(currentCount)} detecciones entre ${startDate} y ${latestDate} (${currentRate}/día); referencia: ${baselineRate}/día, ${referenceText}. ${currentDays} días con detecciones en el intervalo. `;
+        const coverage = document.createElement("span");
+        const latestLabel = new Date(`${latestDate}T00:00:00Z`).toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+        const sourceThrough = dataset.coverage[currentYear]?.data_through;
+        const sourceLabel = sourceThrough ? new Date(`${sourceThrough}T00:00:00Z`).toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }) : null;
+        coverage.textContent = `Últimas detecciones incluidas: ${latestLabel}${sourceLabel ? ` · archivos fuente disponibles hasta ${sourceLabel}` : ""}.`;
+        const caveat = document.createElement("span");
+        caveat.textContent = elevated
+          ? " Este indicador es retrospectivo y comparativo: señala actividad mayor que la referencia histórica, pero no reemplaza una evaluación oficial ni un pronóstico de propagación."
+          : " El umbral histórico no se superó en este intervalo; esto no descarta riesgo, pero indica que la actividad reciente no excedió la referencia comparativa. ";
+
+        const alertMessage = elevated
+          ? `Aviso comparativo: actividad reciente por encima de lo habitual. ${formatCount(currentCount)} detecciones en los últimos 7 días (${currentRate}/día) frente a ${baselineRate}/día en la referencia histórica.`
+          : "Sin aumento inusual en los últimos 7 días según la comparación histórica disponible.";
+
+        if (elevated) {
+          activityWatch.dataset.alertShown = "true";
+          try {
+            if (window.Notification && Notification.permission === "granted") {
+              new Notification("Actividad reciente por encima de lo habitual", { body: alertMessage });
+            }
+          } catch (error) {
+            console.warn("No fue posible enviar la notificación del navegador:", error);
+          }
+          try {
+            window.alert(alertMessage);
+          } catch (error) {
+            console.warn("No fue posible mostrar la alerta emergente:", error);
+          }
+        } else {
+          delete activityWatch.dataset.alertShown;
+        }
+
+        activityWatch.append(banner, heading, description, coverage, caveat, pill);
+      };
 
       const renderCalendar = () => {
         const calendarYear = getCalendarYear();
+        if (!dataset || !dataset.records || !Array.isArray(dataset.records[calendarYear])) {
+          calendar.replaceChildren();
+          const message = document.createElement("p");
+          message.className = "calendar-note";
+          message.textContent = `No hay cobertura disponible para ${calendarYear}. Selecciona otro año para consultar el calendario.`;
+          calendar.replaceChildren(message);
+          return;
+        }
         const dailyCounts = new Map();
         let maximum = 0;
-        dataset.records[calendarYear].forEach((record) => {
+        getYearRecords(calendarYear).forEach((record) => {
           if (!matchesAreaAndConfidence(record)) return;
           dailyCounts.set(record[2], (dailyCounts.get(record[2]) || 0) + 1);
         });
@@ -636,9 +1012,9 @@
             cell.type = "button";
             cell.className = `calendar-day${filters.month && filters.month !== monthNumber ? " dimmed" : ""}${selectedDate === date ? " selected" : ""}`;
             cell.style.backgroundColor = colors[intensity];
-            cell.title = `${date}: ${formatCount(count)} detecciones`;
+            cell.title = `${date}: ${formatCount(count)} detecciones VIIRS; ${getWeatherDescription(date)}`;
             cell.setAttribute("role", "gridcell");
-            cell.setAttribute("aria-label", `${date}, ${formatCount(count)} detecciones`);
+            cell.setAttribute("aria-label", `${date}, ${formatCount(count)} detecciones VIIRS; ${getWeatherDescription(date)}`);
             cell.addEventListener("click", () => {
               filters.year = calendarYear;
               filters.month = monthNumber;
@@ -653,12 +1029,15 @@
           calendar.append(row);
         }
         const partial = calendarYear === "2026" ? " · detecciones regionales hasta el 5 nov.; fuentes disponibles hasta el 7 nov" : "";
-        calendarSummary.textContent = `Actividad diaria ${calendarYear}${filters.confidence === "all" ? "" : ` · confianza ${confidenceNames[filters.confidence]}`}${areaPolygon ? " · área dibujada" : ""}${partial}. Pulsa un día para filtrar el mapa.`;
+        const climateStatus = weatherLoadError ? " · clima no disponible" : weatherDataset ? "" : " · cargando clima";
+        calendarSummary.textContent = `Actividad diaria ${calendarYear}${filters.confidence === "all" ? "" : ` · confianza ${confidenceNames[filters.confidence]}`}${areaPolygon ? " · área dibujada" : ""}${partial}${climateStatus}. Pulsa un día para filtrar el mapa y ver el resumen del día.`;
+        renderCalendarDayDetails();
       };
 
       const getMonthlyStatistics = () => {
-        const counts = Object.fromEntries(years.map((year) => [year, Array(12).fill(0)]));
-        years.forEach((year) => {
+        const availableYears = getAvailableYears();
+        const counts = Object.fromEntries(availableYears.map((year) => [year, Array(12).fill(0)]));
+        availableYears.forEach((year) => {
           dataset.records[year].forEach((record) => {
             if (!matchesAreaAndConfidence(record)) return;
             counts[year][Number(record[2].slice(5, 7)) - 1] += 1;
@@ -666,13 +1045,62 @@
         });
         return counts;
       };
+      const renderForecast = () => {
+        const forecastGrid = document.getElementById("forecast-grid");
+        const forecastMethod = document.getElementById("forecast-method");
+        const referenceYears = ["2025", "2026"];
+        const annualizedCounts = referenceYears.map((year) => {
+          const coverage = dataset.coverage?.[year];
+          const records = getYearRecords(year);
+          if (!coverage?.from || !coverage?.to || !records.length) return null;
+          const start = new Date(`${coverage.from}T00:00:00Z`);
+          const end = new Date(`${coverage.to}T00:00:00Z`);
+          const observedDays = Math.floor((end - start) / 86400000) + 1;
+          if (!Number.isFinite(observedDays) || observedDays <= 0) return null;
+          const count = records.reduce((total, record) => (
+            matchesAreaAndConfidence(record) ? total + 1 : total
+          ), 0);
+          return count * 365 / observedDays;
+        });
+
+        if (annualizedCounts.some((count) => !Number.isFinite(count)) || annualizedCounts.some((count) => count === 0)) {
+          forecastGrid.textContent = "No hay suficiente cobertura reciente en el área y nivel de confianza seleccionados para calcular este escenario.";
+          forecastMethod.textContent = "La proyección requiere detecciones y fechas de cobertura válidas para 2025 y 2026.";
+          return;
+        }
+
+        const [year2025, year2026] = annualizedCounts;
+        const estimate = (year2025 + year2026) / 2;
+        const lowerBound = Math.min(year2025, year2026);
+        const upperBound = Math.max(year2025, year2026);
+        const roundToHundred = (value) => Math.round(value / 100) * 100;
+        const formatProjection = (value) => formatCount(roundToHundred(value));
+        forecastGrid.replaceChildren();
+        ["2027", "2028", "2029"].forEach((year) => {
+          const card = document.createElement("article");
+          card.className = "forecast-card";
+          const yearLabel = document.createElement("div");
+          yearLabel.className = "forecast-year";
+          yearLabel.textContent = year;
+          const centralEstimate = document.createElement("strong");
+          centralEstimate.className = "forecast-estimate";
+          centralEstimate.textContent = `~${formatProjection(estimate)}`;
+          const range = document.createElement("div");
+          range.className = "forecast-range";
+          range.textContent = `Rango de referencia: ${formatProjection(lowerBound)}–${formatProjection(upperBound)}`;
+          card.append(yearLabel, centralEstimate, range);
+          forecastGrid.append(card);
+        });
+        forecastMethod.textContent = `Escenario de continuidad: promedio simple de 2025 (${formatProjection(year2025)} detecciones/año) y 2026 anualizado (${formatProjection(year2026)}; datos hasta ${dataset.coverage["2026"].to}). Se mantiene ese nivel como referencia para los tres años; el rango solo refleja esos dos valores observados y no es un intervalo de confianza. Es una proyección exploratoria, no predice incendios confirmados ni reemplaza una evaluación oficial.`;
+      };
       const monthDays = (year, monthIndex) => {
         if (year === "2026" && monthIndex === 10) return 7;
         return new Date(Number(year), monthIndex + 1, 0).getDate();
       };
       const renderChart = () => {
         const counts = getMonthlyStatistics();
-        const monthlyRates = Object.fromEntries(years.map((year) => [
+        const availableYears = getAvailableYears();
+        const monthlyRates = Object.fromEntries(availableYears.map((year) => [
           year,
           counts[year].map((count, monthIndex) => count / monthDays(year, monthIndex)),
         ]));
@@ -682,11 +1110,16 @@
         }
         const chartData = {
           labels: monthNames.map((name, index) => index === 10 ? `${name}*` : name),
-          datasets: [
-            { label: "2024", data: monthlyRates["2024"], rawCounts: counts["2024"], coverageDays: counts["2024"].map((_, month) => monthDays("2024", month)), borderColor: "#34814c", backgroundColor: "#34814c", tension: 0.25, pointRadius: 3 },
-            { label: "2025", data: monthlyRates["2025"], rawCounts: counts["2025"], coverageDays: counts["2025"].map((_, month) => monthDays("2025", month)), borderColor: "#d26052", backgroundColor: "#d26052", tension: 0.25, pointRadius: 3 },
-            { label: "2026", data: monthlyRates["2026"], rawCounts: counts["2026"], coverageDays: counts["2026"].map((_, month) => monthDays("2026", month)), borderColor: "#4a83c5", backgroundColor: "#4a83c5", tension: 0.25, pointRadius: 3 },
-          ],
+          datasets: availableYears.map((year, index) => ({
+            label: year,
+            data: monthlyRates[year],
+            rawCounts: counts[year],
+            coverageDays: counts[year].map((_, month) => monthDays(year, month)),
+            borderColor: ["#34814c", "#d26052", "#4a83c5", "#7f66d2", "#0d8ea8", "#a35d3c"][index % 6],
+            backgroundColor: ["#34814c", "#d26052", "#4a83c5", "#7f66d2", "#0d8ea8", "#a35d3c"][index % 6],
+            tension: 0.25,
+            pointRadius: 3,
+          })),
         };
         if (!monthlyChart) {
           monthlyChart = new Chart(document.getElementById("monthly-chart"), {
@@ -720,11 +1153,22 @@
         }
 
         const alerts = [];
-        for (let monthIndex = 0; monthIndex < 10; monthIndex += 1) {
-          const baseline = (monthlyRates["2024"][monthIndex] + monthlyRates["2025"][monthIndex]) / 2;
-          const current = monthlyRates["2026"][monthIndex];
-          if (baseline > 0 && current >= baseline * 1.5) {
-            alerts.push(`${monthNames[monthIndex]}: 2026 supera en ${Math.round((current / baseline - 1) * 100)} % el promedio diario 2024–2025.`);
+        const comparisonYears = ["2024", "2025"].filter((year) => Object.prototype.hasOwnProperty.call(monthlyRates, year));
+        const currentYear = "2026";
+        if (!Object.prototype.hasOwnProperty.call(monthlyRates, currentYear)) {
+          const latestYear = availableYears.at(-1);
+          if (latestYear) {
+            alerts.push(`Sin datos completos de ${currentYear}; se compara la actividad de ${latestYear} con el historial disponible.`);
+          }
+        } else {
+          for (let monthIndex = 0; monthIndex < 10; monthIndex += 1) {
+            const baseline = comparisonYears.length
+              ? comparisonYears.reduce((sum, year) => sum + (monthlyRates[year]?.[monthIndex] ?? 0), 0) / comparisonYears.length
+              : 0;
+            const current = monthlyRates[currentYear][monthIndex];
+            if (baseline > 0 && current >= baseline * 1.5) {
+              alerts.push(`${monthNames[monthIndex]}: ${currentYear} supera en ${Math.round((current / baseline - 1) * 100)} % el promedio diario ${comparisonYears.join("–") || "histórico"}.`);
+            }
           }
         }
         anomalySummary.replaceChildren();
@@ -735,8 +1179,10 @@
             anomalySummary.append(item);
           });
         } else {
+          const latestYear = availableYears.at(-1) || currentYear;
+          const currentLabel = latestYear === currentYear ? "2026" : latestYear;
           const item = document.createElement("li");
-          item.textContent = "Ningún mes completo de 2026 supera el umbral descriptivo del 50 %.";
+          item.textContent = `Ningún mes completo de ${currentLabel} supera el umbral descriptivo del 50 %.`;
           anomalySummary.append(item);
         }
       };
@@ -752,18 +1198,23 @@
         };
         sendToMap({ type: "viirs:filters", filters: mapFilters });
         let matchingCount = 0;
-        years.forEach((year) => {
-          dataset.records[year].forEach((record) => {
+        const availableYears = getAvailableYears();
+        availableYears.forEach((year) => {
+          getYearRecords(year).forEach((record) => {
             if (matchesMapFilters(record)) matchingCount += 1;
           });
         });
-        const period = selectedDate || `${filters.year === "all" ? "2024–2026" : filters.year}${filters.month ? ` · mes ${Number(filters.month)}` : ""}`;
+        const rangeStart = availableYears[0] || "2024";
+        const rangeEnd = availableYears.at(-1) || "2026";
+        const period = selectedDate || `${filters.year === "all" ? `${rangeStart}–${rangeEnd}` : filters.year}${filters.month ? ` · mes ${Number(filters.month)}` : ""}`;
         const confidence = filters.confidence === "all" ? "todas las confianzas" : `confianza ${confidenceNames[filters.confidence]}`;
         filterStatus.textContent = `${formatCount(matchingCount)} detecciones coinciden con ${period} y ${confidence}${areaPolygon ? " en el área dibujada" : ""}.`;
         clearDayButton.disabled = !selectedDate;
         updateAreaStatus();
+        renderRecentActivity();
         renderCalendar();
         renderChart();
+        renderForecast();
       };
 
       [filterYear, filterMonth, filterConfidence].forEach((control) => {
@@ -822,8 +1273,14 @@
         })
         .then((data) => {
           if (!data || !data.records || !data.coverage) throw new Error("El archivo de datos no tiene el formato esperado.");
-          years.forEach((year) => {
-            if (!Array.isArray(data.records[year]) || data.records[year].length !== data.coverage[year].count) {
+          const observedYears = Object.keys(data.records).filter((year) => /^20\d{2}$/.test(year)).sort();
+          if (!observedYears.length) {
+            throw new Error("No se encontraron registros por año en los datos VIIRS.");
+          }
+          observedYears.forEach((year) => {
+            const coverageRecord = data.coverage?.[year];
+            if (!coverageRecord) return;
+            if (!Array.isArray(data.records[year]) || data.records[year].length !== coverageRecord.count) {
               throw new Error(`Los datos de ${year} están incompletos.`);
             }
           });
@@ -835,6 +1292,38 @@
         .catch((error) => {
           console.error("No se pudieron cargar los datos de actividad VIIRS:", error);
           filterStatus.textContent = "Error al cargar los datos VIIRS. Verifica tu conexión y vuelve a cargar la página.";
+        });
+
+      fetch("./clima_san_martin_diario_2024_2026.json?rev=clima-diario-v1")
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.json();
+        })
+        .then((data) => {
+          if (!data || !data.daily || !data.coverage) throw new Error("El archivo meteorológico no tiene el formato esperado.");
+          weatherDataset = data;
+          let dryStreak = 0;
+          Object.keys(data.daily).sort().forEach((date) => {
+            const precipitation = data.daily[date].precipitationMm;
+            if (!Number.isFinite(precipitation)) {
+              dryStreakByDate.set(date, null);
+              dryStreak = 0;
+            } else if (precipitation < data.dryDayThresholdMm) {
+              dryStreak += 1;
+              dryStreakByDate.set(date, dryStreak);
+            } else {
+              dryStreak = 0;
+              dryStreakByDate.set(date, dryStreak);
+            }
+          });
+          refreshDashboard();
+        })
+        .catch((error) => {
+          weatherLoadError = error;
+          console.error("No se pudieron cargar los datos meteorológicos históricos:", error);
+          calendarSummary.textContent = "No se pudo cargar el archivo meteorológico. Las detecciones y el calendario VIIRS siguen disponibles.";
+          renderCalendarDayDetails();
+          if (dataset) renderCalendar();
         });
     });
   </script>
