@@ -993,31 +993,60 @@
 
       const renderRecentActivity = () => {
         const availableYears = getAvailableYears();
-        const currentYear = availableYears.at(-1) || "2026";
-        const latestDate = dataset.coverage?.[currentYear]?.to;
-        if (!latestDate) {
+        const latestAvailableYear = availableYears.at(-1) || "2026";
+        const currentYear = filters.year === "all" ? latestAvailableYear : filters.year;
+        const yearCoverage = dataset.coverage?.[currentYear];
+        const coverageEnd = yearCoverage?.to;
+        if (!coverageEnd) {
           activityWatch.textContent = "No se pudo determinar la fecha de las detecciones más recientes.";
           return;
+        }
+        let latestDate = selectedDate && selectedDate.startsWith(`${currentYear}-`)
+          ? selectedDate
+          : coverageEnd;
+        if (!selectedDate && filters.month) {
+          const monthEnd = new Date(Date.UTC(Number(currentYear), Number(filters.month), 0))
+            .toISOString().slice(0, 10);
+          if (monthEnd < latestDate) latestDate = monthEnd;
         }
         const lastDay = new Date(`${latestDate}T00:00:00Z`);
         const firstDay = new Date(lastDay);
         firstDay.setUTCDate(firstDay.getUTCDate() - 6);
-        const startDate = firstDay.toISOString().slice(0, 10);
+        let startDate = firstDay.toISOString().slice(0, 10);
+        if (filters.month && !selectedDate) {
+          const monthStart = `${currentYear}-${filters.month}-01`;
+          if (startDate < monthStart) startDate = monthStart;
+        }
+        const getCoveredDays = (year, from, to) => {
+          let coveredDays = 0;
+          const day = new Date(`${from}T00:00:00Z`);
+          const end = new Date(`${to}T00:00:00Z`);
+          while (day <= end) {
+            if (isViirsDateCovered(day.toISOString().slice(0, 10).replace(/^\d{4}/, year))) {
+              coveredDays += 1;
+            }
+            day.setUTCDate(day.getUTCDate() + 1);
+          }
+          return coveredDays;
+        };
         const countRange = (year, from, to) => getYearRecords(year).reduce((total, record) => (
           record[2] >= from && record[2] <= to && matchesAreaAndConfidence(record) ? total + 1 : total
         ), 0);
         const currentCount = countRange(currentYear, startDate, latestDate);
         const currentDays = new Set(getYearRecords(currentYear).filter((record) => record[2] >= startDate && record[2] <= latestDate && matchesAreaAndConfidence(record)).map((record) => record[2])).size;
-        const referenceYears = availableYears.filter((year) => year !== currentYear).slice(-2);
-        const comparableRanges = referenceYears.map((year) => {
+        const currentCoveredDays = getCoveredDays(currentYear, startDate, latestDate);
+        const referenceRates = availableYears.filter((year) => year !== currentYear).flatMap((year) => {
           const from = `${year}${startDate.slice(4)}`;
           const to = `${year}${latestDate.slice(4)}`;
-          return countRange(year, from, to) / 7;
+          const coveredDays = getCoveredDays(year, from, to);
+          return coveredDays ? [{ year, rate: countRange(year, from, to) / coveredDays }] : [];
         });
+        const referenceYears = referenceRates.map(({ year }) => year);
+        const comparableRanges = referenceRates.map(({ rate }) => rate);
         const baselinePerDay = comparableRanges.length
           ? comparableRanges.reduce((sum, value) => sum + value, 0) / comparableRanges.length
           : 0;
-        const currentPerDay = currentCount / 7;
+        const currentPerDay = currentCoveredDays ? currentCount / currentCoveredDays : 0;
         const elevated = currentCount >= 5 && baselinePerDay > 0 && currentPerDay >= baselinePerDay * 1.5;
         activityWatch.classList.toggle("elevated", elevated);
         const currentRate = currentPerDay.toLocaleString("es-PE", { maximumFractionDigits: 1 });
@@ -1026,7 +1055,7 @@
         const heading = document.createElement("strong");
         heading.textContent = elevated
           ? "Aviso: actividad reciente por encima de lo habitual"
-          : "Comparación histórica sin aumento inusual en los últimos 7 días";
+          : `Comparación histórica de ${currentYear} sin aumento inusual en el periodo`;
 
         const banner = document.createElement("div");
         banner.className = "alert-banner";
@@ -1037,35 +1066,39 @@
         pill.textContent = elevated ? "Riesgo relativo: alto" : "Riesgo relativo: normal";
 
         const description = document.createElement("span");
-        const referenceText = referenceYears.length ? `promedio de las mismas fechas en ${referenceYears.join(" y ")}` : "referencia histórica disponible";
-        description.textContent = ` · ${formatCount(currentCount)} detecciones entre ${startDate} y ${latestDate} (${currentRate}/día); referencia: ${baselineRate}/día, ${referenceText}. ${currentDays} días con detecciones en el intervalo. `;
+        const referenceText = referenceYears.length ? `promedio de las mismas fechas en ${referenceYears.join(", ")}` : "sin años comparables con cobertura VIIRS";
+        description.textContent = ` · ${formatCount(currentCount)} detecciones entre ${startDate} y ${latestDate} (${currentRate}/día en ${currentCoveredDays} días cubiertos); referencia: ${baselinePerDay ? `${baselineRate}/día, ${referenceText}` : referenceText}. ${currentDays} días con detecciones en el intervalo. `;
         const coverage = document.createElement("span");
-        const latestLabel = new Date(`${latestDate}T00:00:00Z`).toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
-        const sourceThrough = dataset.coverage[currentYear]?.data_through;
+        const latestLabel = new Date(`${coverageEnd}T00:00:00Z`).toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+        const sourceThrough = yearCoverage.data_through;
         const sourceLabel = sourceThrough ? new Date(`${sourceThrough}T00:00:00Z`).toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }) : null;
-        coverage.textContent = `Últimas detecciones incluidas: ${latestLabel}${sourceLabel ? ` · archivos fuente disponibles hasta ${sourceLabel}` : ""}.`;
+        coverage.textContent = `Año del análisis: ${currentYear}${latestDate !== coverageEnd ? ` · periodo seleccionado hasta ${new Date(`${latestDate}T00:00:00Z`).toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })}` : ` · últimas detecciones incluidas: ${latestLabel}`}${sourceLabel ? ` · archivos fuente disponibles hasta ${sourceLabel}` : ""}.`;
         const caveat = document.createElement("span");
         caveat.textContent = elevated
           ? " Este indicador es retrospectivo y comparativo: señala actividad mayor que la referencia histórica, pero no reemplaza una evaluación oficial ni un pronóstico de propagación."
-          : " El umbral histórico no se superó en este intervalo; esto no descarta riesgo, pero indica que la actividad reciente no excedió la referencia comparativa. ";
+          : referenceYears.length
+            ? " El umbral histórico no se superó en este intervalo; esto no descarta riesgo, pero indica que la actividad del periodo no excedió la referencia comparativa."
+            : " No hay suficientes años comparables con cobertura para establecer una referencia; esto no descarta riesgo.";
 
         const alertMessage = elevated
-          ? `Aviso comparativo: actividad reciente por encima de lo habitual. ${formatCount(currentCount)} detecciones en los últimos 7 días (${currentRate}/día) frente a ${baselineRate}/día en la referencia histórica.`
-          : "Sin aumento inusual en los últimos 7 días según la comparación histórica disponible.";
+          ? `Aviso comparativo para ${currentYear}: actividad por encima de lo habitual. ${formatCount(currentCount)} detecciones entre ${startDate} y ${latestDate} (${currentRate}/día) frente a ${baselineRate}/día en la referencia histórica.`
+          : `Sin aumento inusual en el periodo analizado de ${currentYear} según la comparación histórica disponible.`;
 
         if (elevated) {
           activityWatch.dataset.alertShown = "true";
-          try {
-            if (window.Notification && Notification.permission === "granted") {
-              new Notification("Actividad reciente por encima de lo habitual", { body: alertMessage });
+          if (currentYear === latestAvailableYear) {
+            try {
+              if (window.Notification && Notification.permission === "granted") {
+                new Notification("Actividad reciente por encima de lo habitual", { body: alertMessage });
+              }
+            } catch (error) {
+              console.warn("No fue posible enviar la notificación del navegador:", error);
             }
-          } catch (error) {
-            console.warn("No fue posible enviar la notificación del navegador:", error);
-          }
-          try {
-            window.alert(alertMessage);
-          } catch (error) {
-            console.warn("No fue posible mostrar la alerta emergente:", error);
+            try {
+              window.alert(alertMessage);
+            } catch (error) {
+              console.warn("No fue posible mostrar la alerta emergente:", error);
+            }
           }
         } else {
           delete activityWatch.dataset.alertShown;
