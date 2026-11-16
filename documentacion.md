@@ -73,3 +73,7 @@ Los registros muestran fecha, hora UTC, coordenadas, FRP, confianza, sensor y sa
 - [geoBoundaries — límites provinciales del Perú](https://github.com/wmgeolab/geoBoundaries/tree/9469f09/releaseData/gbOpen/PER/ADM2).
 - [GeoNames — referencia geográfica de localidades](https://www.geonames.org/).
 - [OpenStreetMap — nombres geográficos y atribución](https://www.openstreetmap.org/copyright), consultados para la ubicación seleccionada.
+
+## Descargas MODIS por año
+
+La web ofrece un CSV independiente para cada año en `descargas/modis_focos_san_martin_AAAA.csv`. Cada archivo contiene únicamente detecciones MODIS recortadas a San Martín cuya fecha de adquisición pertenece al año del nombre. Las columnas siguen el esquema armonizado de la aplicación. Al regenerar el conjunto con `python preparar_dataset_harmonizado.py`, también se actualizan estos seis archivos CSV.

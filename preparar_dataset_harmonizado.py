@@ -16,6 +16,7 @@ from zipfile import ZipFile
 ROOT = Path(__file__).resolve().parent
 VIIRS_FILE = ROOT / "datos_viirs_san_martin_2021_2026.json"
 OUTPUT_FILE = ROOT / "datos_focos_harmonizados_2021_2026.json"
+MODIS_DOWNLOAD_DIR = ROOT / "descargas"
 MAP_FILE = ROOT / "incendios.html"
 
 def discover_modis_files():
@@ -259,6 +260,21 @@ def main():
     }
     OUTPUT_FILE.write_text(json.dumps(output, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     print(f"Dataset armonizado guardado en {OUTPUT_FILE.name}.", flush=True)
+
+    # Create one Excel-friendly CSV per acquisition year. Each file contains
+    # only MODIS records whose acquisition date belongs to that calendar year.
+    MODIS_DOWNLOAD_DIR.mkdir(exist_ok=True)
+    fields = output["record_fields"]
+    for year in sorted(records):
+        year_modis = [record for record in records[year] if record[10] == "MODIS" and record[2][:4] == year]
+        if not year_modis:
+            continue
+        csv_path = MODIS_DOWNLOAD_DIR / f"modis_focos_san_martin_{year}.csv"
+        with csv_path.open("w", encoding="utf-8-sig", newline="") as csv_file:
+            writer = csv.writer(csv_file)
+            writer.writerow(fields)
+            writer.writerows(year_modis)
+        print(f"Descarga MODIS {year}: {len(year_modis):,} detecciones en {csv_path.relative_to(ROOT)}.", flush=True)
 
 
 if __name__ == "__main__":
