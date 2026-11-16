@@ -15,10 +15,8 @@ Este proyecto organiza detecciones satelitales VIIRS en un calendario de activid
 
 ## Capas y leyenda
 
-- **Puntos VIIRS · FRP (MW):** el color indica la potencia radiativa del fuego (FRP) registrada por VIIRS:
-  - Verde: hasta 20 MW.
-  - Naranja: más de 20 y hasta 50 MW.
-  - Rojo: más de 50 MW.
+- **Puntos VIIRS · FRP (MW):** paleta azul, ámbar y magenta para los rangos hasta 20 MW, más de 20 y hasta 50 MW, y más de 50 MW. El tamaño también aumenta por rango para que la lectura no dependa solo del color.
+- Los puntos VIIRS son focos de calor detectados por satélite, no incendios confirmados. GEOPERÚ ofrece alertas oficiales georreferenciadas, pero esa capa operativa no constituye un historial de incendios ocurridos: https://visor.geoperu.gob.pe/?layers=40031
 - **Detecciones 2021:** archivo anual de Suomi-NPP.
 - **Detecciones 2022:** 394 detecciones de Suomi-NPP en las fechas disponibles del archivo: 1–6 y 15–19 de enero. No se debe interpretar el resto del año como cobertura sin focos.
 - **Detecciones 2023:** archivos anuales disponibles de Suomi-NPP y NOAA-21.

@@ -479,9 +479,9 @@
       vertical-align: -1px;
       box-shadow: 0 0 0 1px #78878d;
     }
-    .legend-green { background: green; }
-    .legend-orange { background: orange; }
-    .legend-red { background: red; }
+    .legend-green { width: 8px; height: 8px; background: #0072b2; }
+    .legend-orange { width: 11px; height: 11px; background: #e69f00; }
+    .legend-red { width: 14px; height: 14px; background: #cc79a7; }
     .legend-boundary {
       display: inline-block;
       width: 18px;
@@ -495,7 +495,7 @@
       height: 8px;
       margin: 0 5px;
       border-radius: 5px;
-      background: linear-gradient(90deg, blue, cyan, lime, yellow, red);
+      background: linear-gradient(90deg, #3b4cc0, #1fa187, #f6d746);
       vertical-align: 0;
     }
     iframe {
@@ -580,8 +580,9 @@
         <summary>Leyenda del mapa</summary>
         <div class="legend-content">
           <p class="legend-title">Puntos VIIRS · FRP (MW)</p>
-          <p><span class="legend-symbol legend-green"></span>Hasta 20 · <span class="legend-symbol legend-orange"></span>Más de 20 y hasta 50 · <span class="legend-symbol legend-red"></span>Más de 50.</p>
+          <p><span class="legend-symbol legend-green"></span>Hasta 20 MW · <span class="legend-symbol legend-orange"></span>Más de 20 y hasta 50 MW · <span class="legend-symbol legend-red"></span>Más de 50 MW. El tamaño y el color distinguen los rangos.</p>
           <p>FRP es la potencia radiativa del fuego registrada por VIIRS.</p>
+          <p>VIIRS muestra focos de calor, no incendios confirmados. Para consultar alertas oficiales georreferenciadas, visita <a href="https://visor.geoperu.gob.pe/?layers=40031" target="_blank" rel="noopener noreferrer">GEOPERÚ</a>; esa capa de alertas no es un historial de incendios ocurridos.</p>
           <p><span class="legend-heat"></span>Mancha de calor: activa la densidad de San Martín de 2021 a 2026 en <strong>Capas</strong>. Muestra concentración, no probabilidad de incendio.</p>
           <p><span class="legend-boundary"></span>Límite departamental de San Martín.</p>
           <p>Activa o desactiva las capas por año en <strong>Capas</strong>. Al pasar el cursor sobre los puntos con nombre verás su localidad cercana; al hacer clic, el popup muestra coordenadas, fecha, hora, FRP, confianza, satélite y los nombres disponibles en la fuente.</p>
@@ -671,7 +672,7 @@
           </section>
           <div class="calendar-months" id="activity-calendar" role="grid" aria-label="Calendario de detecciones diarias"></div>
           <div class="calendar-legend" id="calendar-legend" aria-label="Intensidad de detecciones">
-            Menos <span style="background:#ebf3ee"></span><span style="background:#b4d5c1"></span><span style="background:#6ea883"></span><span style="background:#287252"></span> Más <span style="background:repeating-linear-gradient(135deg,#f3f5f6,#f3f5f6 2px,#d6dcdf 2px,#d6dcdf 4px)"></span> Sin datos
+            Menos <span style="background:#dbeafe"></span><span style="background:#93c5fd"></span><span style="background:#3b82f6"></span><span style="background:#1e3a8a"></span> Más <span style="background:repeating-linear-gradient(135deg,#f3f5f6,#f3f5f6 2px,#d6dcdf 2px,#d6dcdf 4px)"></span> Sin datos
           </div>
           <div class="calendar-details" id="calendar-day-details" aria-live="polite">
             <p>Selecciona un día para consultar sus detecciones y condiciones meteorológicas.</p>
@@ -709,7 +710,7 @@
     <section class="map-panel" id="mapa" aria-label="Mapa interactivo de focos de incendio">
       <div class="map-toolbar">San Martín <span>· Detecciones VIIRS 2021–2026</span></div>
       <iframe
-        src="./incendios.html?rev=viirs-historico-2021-2026-v1"
+        src="./incendios.html?rev=viirs-historico-2021-2026-palette-v2"
         title="Mapa interactivo de detecciones VIIRS 2021–2026 y límite de San Martín"
         loading="eager"
         allowfullscreen>
@@ -1127,7 +1128,7 @@
           dailyCounts.set(record[2], (dailyCounts.get(record[2]) || 0) + 1);
         });
         dailyCounts.forEach((count) => { maximum = Math.max(maximum, count); });
-        const colors = ["#ebf3ee", "#b4d5c1", "#6ea883", "#287252"];
+        const colors = ["#dbeafe", "#93c5fd", "#3b82f6", "#1e3a8a"];
         const climateColors = ["#335c81", "#367f82", "#b38738", "#b45148"];
         const hasPartialViirsCoverage = Array.isArray(dataset.coverage?.[calendarYear]?.coverage_periods)
           && (dataset.coverage[calendarYear].coverage_periods.length !== 1

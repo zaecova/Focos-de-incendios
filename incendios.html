@@ -243760,10 +243760,11 @@
                 matchingCount += 1;
                 coordinates.push([record[0], record[1]]);
                 const frp = Number.isFinite(record[4]) ? record[4] : 0;
-                const color = frp > 50 ? "red" : frp > 20 ? "orange" : "green";
+                const color = frp > 50 ? "#cc79a7" : frp > 20 ? "#e69f00" : "#0072b2";
+                const radius = frp > 50 ? 7 : frp > 20 ? 6 : 5;
                 const marker = L.circleMarker([record[0], record[1]], {
                     renderer,
-                    radius: 5,
+                    radius,
                     color,
                     fill: true,
                     fillOpacity: 0.7,
