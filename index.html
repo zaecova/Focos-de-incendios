@@ -774,6 +774,14 @@
         }
       };
       updateModisSensorOptions();
+      const syncDateBounds = () => {
+        const year = filterYear.value;
+        [filterFrom, filterTo].forEach((input) => {
+          input.min = year === "all" ? "" : `${year}-01-01`;
+          input.max = year === "all" ? "" : `${year}-12-31`;
+        });
+      };
+      syncDateBounds();
       const getModisYear = (sensor) => /^MODIS-202[1-6]$/.test(sensor) ? sensor.slice(-4) : null;
       const getSensorSource = (sensor) => getModisYear(sensor) ? "MODIS" : sensor;
       const getSensorLabel = (sensor) => getModisYear(sensor) ? `MODIS ${getModisYear(sensor)}` : sensor === "all" ? "MODIS + VIIRS" : sensor;
@@ -1646,25 +1654,45 @@
           calendarYearSelect.value = filters.year === "all" ? "2026" : filters.year;
           if (selectedDate && (filters.year !== previousYear || filters.month !== previousMonth)) selectedDate = "";
           updateModisSensorOptions();
+          syncDateBounds();
           refreshDashboard();
         });
       });
-      const applyDateRange = () => {
+      const applyDateRange = (event) => {
+        const changedInput = event.currentTarget;
         const from = filterFrom.value;
         const to = filterTo.value;
+        let selectedYear = filterYear.value;
+        if (selectedYear === "all") {
+          const firstDate = changedInput.value || from || to;
+          if (firstDate) selectedYear = firstDate.slice(0, 4);
+        }
+        const mismatchedInput = [filterFrom, filterTo].find((input) => input.value && selectedYear !== "all"
+          && input.value.slice(0, 4) !== selectedYear);
+        if (mismatchedInput) {
+          mismatchedInput.value = "";
+          filterStatus.textContent = `Las fechas Desde y Hasta deben pertenecer al año ${selectedYear} seleccionado.`;
+          filters.from = filterFrom.value;
+          filters.to = filterTo.value;
+          syncDateBounds();
+          return;
+        }
         if (from && to && from > to) {
           filterStatus.textContent = "La fecha inicial debe ser anterior o igual a la fecha final.";
           return;
         }
+        if (selectedYear !== "all") {
+          filterYear.value = selectedYear;
+          calendarYearSelect.value = selectedYear;
+          filters.year = selectedYear;
+          updateModisSensorOptions();
+        }
         filters.from = from;
         filters.to = to;
-        filters.year = "all";
         filters.month = "";
-        filterYear.value = "all";
         filterMonth.value = "";
-        calendarYearSelect.value = to ? to.slice(0, 4) : from ? from.slice(0, 4) : "2026";
+        syncDateBounds();
         selectedDate = "";
-        updateModisSensorOptions();
         refreshDashboard();
       };
       [filterFrom, filterTo].forEach((control) => control.addEventListener("change", applyDateRange));
@@ -1692,6 +1720,7 @@
         filterMonth.value = "";
         if (selectedDate && filters.year !== previousYear) selectedDate = "";
         updateModisSensorOptions();
+        syncDateBounds();
         refreshDashboard();
       });
       clearDayButton.addEventListener("click", () => {
