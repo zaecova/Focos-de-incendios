@@ -112,7 +112,7 @@
     }
     .quick-links {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 9px;
       margin: 16px 0 19px;
     }
@@ -249,6 +249,23 @@
       line-height: 1.45;
     }
     .calendar-months { display: grid; gap: 5px; margin-top: 10px; }
+    .calendar-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .calendar-year-select {
+      max-width: 190px;
+      min-height: 32px;
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel-3);
+      color: var(--text);
+      font: inherit;
+      font-size: 11px;
+    }
     .calendar-row { display: grid; grid-template-columns: 31px repeat(31, minmax(7px, 1fr)); gap: 2px; align-items: center; }
     .calendar-month-label { color: #53636a; font-size: 10px; font-weight: 700; }
     .calendar-day, .calendar-empty {
@@ -374,6 +391,25 @@
     .forecast-estimate { display: block; margin: 7px 0 5px; color: #a7e8c1; font-size: 18px; font-weight: 750; }
     .forecast-range { color: var(--text-muted); font-size: 10px; line-height: 1.4; }
     .forecast-method { margin-top: 10px; }
+    .climate-history { margin-top: 12px; }
+    .climate-table-wrap { margin-top: 10px; overflow-x: auto; }
+    .climate-table {
+      width: 100%;
+      min-width: 470px;
+      border-collapse: collapse;
+      color: var(--text-soft);
+      font-size: 10px;
+    }
+    .climate-table th, .climate-table td {
+      padding: 7px 5px;
+      border: 1px solid var(--line);
+      text-align: right;
+      white-space: nowrap;
+    }
+    .climate-table thead th { background: #182638; color: #edf5ff; }
+    .climate-table th:first-child, .climate-table td:first-child { text-align: left; }
+    .climate-table tbody th { color: #edf5ff; }
+    .climate-sources { margin-top: 9px; }
     @media (max-width: 430px) {
       .calendar-row { grid-template-columns: 27px repeat(31, minmax(5px, 1fr)); gap: 1px; }
       .forecast-grid { gap: 5px; }
@@ -513,8 +549,8 @@
 
       <p class="historical">
         <strong>Datos históricos:</strong> el mapa reúne detecciones VIIRS de
-        San Martín entre 2024 y 2026. Los archivos de años anteriores del
-        repositorio son meteorológicos, no registros VIIRS de incendios.
+        San Martín entre 2021 y 2026. El contexto meteorológico se presenta por
+        separado y no se confunde con los puntos de calor VIIRS.
         Una detección no equivale por sí sola a un incendio confirmado.
       </p>
 
@@ -531,6 +567,10 @@
           <span class="quick-icon" aria-hidden="true">▦</span>
           <span>Actividad</span>
         </a>
+        <a class="quick-link" href="#clima-historial">
+          <span class="quick-icon" aria-hidden="true">☼</span>
+          <span>Clima</span>
+        </a>
         <a class="quick-link" href="#fuentes">
           <span class="quick-icon" aria-hidden="true">↗</span>
           <span>Fuentes</span>
@@ -542,10 +582,10 @@
           <p class="legend-title">Puntos VIIRS · FRP (MW)</p>
           <p><span class="legend-symbol legend-green"></span>Hasta 20 · <span class="legend-symbol legend-orange"></span>Más de 20 y hasta 50 · <span class="legend-symbol legend-red"></span>Más de 50.</p>
           <p>FRP es la potencia radiativa del fuego registrada por VIIRS.</p>
-          <p><span class="legend-heat"></span>Mancha de calor: activa la densidad de San Martín 2024, 2025 o 2026 en <strong>Capas</strong>. Muestra concentración, no probabilidad de incendio.</p>
+          <p><span class="legend-heat"></span>Mancha de calor: activa la densidad de San Martín de 2021 a 2026 en <strong>Capas</strong>. Muestra concentración, no probabilidad de incendio.</p>
           <p><span class="legend-boundary"></span>Límite departamental de San Martín.</p>
           <p>Activa o desactiva las capas por año en <strong>Capas</strong>. Al pasar el cursor sobre los puntos con nombre verás su localidad cercana; al hacer clic, el popup muestra coordenadas, fecha, hora, FRP, confianza, satélite y los nombres disponibles en la fuente.</p>
-          <p><strong>2024:</strong> 40.482 detecciones en San Martín. <strong>2025:</strong> 23.273 detecciones en San Martín. <strong>2026:</strong> 13.611 detecciones hasta el 5 de noviembre. Los totales reúnen los satélites disponibles y pueden incluir observaciones del mismo foco; 2026 es un periodo parcial.</p>
+          <p id="annual-viirs-totals">Cargando totales VIIRS de 2021–2026…</p>
         </div>
       </details>
       <section class="analytics-panel" id="analisis" aria-labelledby="analysis-heading">
@@ -558,6 +598,9 @@
             <label class="filter-field" for="filter-year">Año
               <select id="filter-year">
                 <option value="all">Todos</option>
+                <option value="2021">2021 · VIIRS + clima</option>
+                <option value="2022">2022 · VIIRS parcial + clima</option>
+                <option value="2023">2023 · VIIRS + clima</option>
                 <option value="2024">2024</option>
                 <option value="2025">2025</option>
                 <option value="2026" selected>2026</option>
@@ -593,7 +636,17 @@
         </div>
 
         <div class="calendar-card">
-          <p class="legend-title">Calendario diario de actividad</p>
+          <div class="calendar-heading">
+            <label class="legend-title" for="calendar-year">Calendario diario · año</label>
+            <select id="calendar-year" class="calendar-year-select" aria-label="Seleccionar año del calendario">
+              <option value="2021">2021 · VIIRS + clima</option>
+              <option value="2022">2022 · VIIRS parcial + clima</option>
+              <option value="2023">2023 · VIIRS + clima</option>
+              <option value="2024">2024 · VIIRS + clima</option>
+              <option value="2025">2025 · VIIRS + clima</option>
+              <option value="2026" selected>2026 · VIIRS + clima</option>
+            </select>
+          </div>
           <p class="calendar-note" id="calendar-summary">Cada cuadro resume los focos detectados en el área seleccionada. Pulsa un día para ver sus detecciones y condiciones históricas.</p>
           <div class="activity-watch" id="activity-watch" role="status" aria-live="polite">Calculando actividad reciente…</div>
           <section class="forecast-panel" id="pronostico" aria-labelledby="forecast-heading">
@@ -604,8 +657,20 @@
             </div>
             <p class="chart-note forecast-method" id="forecast-method"></p>
           </section>
+          <section class="climate-history" id="clima-historial" aria-labelledby="climate-history-heading">
+            <p class="legend-title" id="climate-history-heading">Contexto meteorológico 2021–2026</p>
+            <p class="chart-note">Promedios anuales de temperatura, humedad, viento y probabilidad de precipitación. Son variables meteorológicas, no conteos ni predicciones de focos VIIRS.</p>
+            <div class="climate-table-wrap">
+              <table class="climate-table" id="climate-history-table" aria-describedby="climate-history-note">
+                <caption class="eyebrow">Resumen anual de los archivos JSON disponibles</caption>
+                <thead></thead>
+                <tbody><tr><td colspan="7">Cargando resumen climático…</td></tr></tbody>
+              </table>
+            </div>
+            <p class="chart-note climate-sources" id="climate-history-note">Clima 2021–2023: Meteomatics, serie cada 5 minutos en un punto de referencia; la humedad de 2022–2023 corresponde a 10 m y la de 2021 a 2 m. Clima 2024–2026: promedio diario ERA5-Land de cuatro localidades; la probabilidad procede de archivos de pronósticos históricos. Las fuentes y resoluciones meteorológicas difieren, por lo que la comparación es orientativa. 2022 tiene cobertura VIIRS parcial y 2026 es parcial.</p>
+          </section>
           <div class="calendar-months" id="activity-calendar" role="grid" aria-label="Calendario de detecciones diarias"></div>
-          <div class="calendar-legend" aria-label="Intensidad de detecciones">
+          <div class="calendar-legend" id="calendar-legend" aria-label="Intensidad de detecciones">
             Menos <span style="background:#ebf3ee"></span><span style="background:#b4d5c1"></span><span style="background:#6ea883"></span><span style="background:#287252"></span> Más <span style="background:repeating-linear-gradient(135deg,#f3f5f6,#f3f5f6 2px,#d6dcdf 2px,#d6dcdf 4px)"></span> Sin datos
           </div>
           <div class="calendar-details" id="calendar-day-details" aria-live="polite">
@@ -617,7 +682,7 @@
         <div class="chart-card">
           <p class="legend-title">Comparación histórica por mes</p>
           <p class="chart-note">Promedio diario de detecciones por mes y año; el gráfico se actualiza con el área y la confianza seleccionadas.</p>
-          <div class="chart-wrap"><canvas id="monthly-chart" aria-label="Comparación mensual de detecciones VIIRS entre 2024, 2025 y 2026" role="img"></canvas></div>
+          <div class="chart-wrap"><canvas id="monthly-chart" aria-label="Comparación mensual de detecciones VIIRS entre 2021 y 2026" role="img"></canvas></div>
           <p class="chart-note">Los días de noviembre de 2026 disponibles son parciales. Se destaca como actividad elevada un promedio mensual al menos 50 % mayor que el promedio del mismo mes en 2024–2025; no es una alerta oficial.</p>
           <ul class="anomaly-list" id="anomaly-summary"></ul>
         </div>
@@ -638,21 +703,14 @@
         <li><a href="https://open-meteo.com/en/docs/historical-weather-api">Open-Meteo — Archivo histórico ERA5-Land de temperatura, humedad, viento, precipitación y humedad del suelo.</a> <a href="https://open-meteo.com/en/docs/historical-forecast-api">Archivo de pronósticos históricos</a> para probabilidad de precipitación y CAPE.</li>
       </ol>
 
-      <p class="data-note">
-        Cobertura regional San Martín: 40.482 detecciones en 2024 (año completo,
-        NOAA-20/21 y Suomi-NPP); 23.273 en 2025 (año completo, NOAA-20/21 y
-        Suomi-NPP); y 13.611 en 2026 (1 de enero–5 de noviembre, NOAA-21 y
-        Suomi-NPP). El tramo final de 2026 usa datos near-real-time, sujetos a
-        actualización. Son detecciones satelitales, no incendios confirmados;
-        varios satélites pueden observar el mismo foco.
-      </p>
+      <p class="data-note" id="data-coverage-note">La cobertura y los totales VIIRS se cargarán junto con el conjunto de datos consolidado.</p>
     </aside>
 
     <section class="map-panel" id="mapa" aria-label="Mapa interactivo de focos de incendio">
-      <div class="map-toolbar">San Martín <span>· Detecciones VIIRS 2024–2026</span></div>
+      <div class="map-toolbar">San Martín <span>· Detecciones VIIRS 2021–2026</span></div>
       <iframe
-        src="./incendios.html?rev=lugar-al-seleccionar-v1"
-        title="Mapa interactivo de detecciones VIIRS 2024–2026 y límite de San Martín"
+        src="./incendios.html?rev=viirs-historico-2021-2026-v1"
+        title="Mapa interactivo de detecciones VIIRS 2021–2026 y límite de San Martín"
         loading="eager"
         allowfullscreen>
       </iframe>
@@ -662,6 +720,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       const mapFrame = document.querySelector(".map-panel iframe");
       const filterYear = document.getElementById("filter-year");
+      const calendarYearSelect = document.getElementById("calendar-year");
       const filterMonth = document.getElementById("filter-month");
       const filterConfidence = document.getElementById("filter-confidence");
       const filterStatus = document.getElementById("filter-status");
@@ -674,13 +733,23 @@
       const calendarDayDetails = document.getElementById("calendar-day-details");
       const anomalySummary = document.getElementById("anomaly-summary");
       const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-      const years = ["2024", "2025", "2026"];
+      const years = ["2021", "2022", "2023", "2024", "2025", "2026"];
       const confidenceNames = { l: "baja", n: "nominal", h: "alta" };
       const getAvailableYears = () => {
         if (!dataset || !dataset.records) return [];
         return years.filter((year) => Array.isArray(dataset.records[year]));
       };
       const getYearRecords = (year) => (dataset && dataset.records && Array.isArray(dataset.records[year]) ? dataset.records[year] : []);
+      const isViirsDateCovered = (date) => {
+        const coverage = dataset?.coverage?.[date.slice(0, 4)];
+        if (!coverage) return false;
+        if (Array.isArray(coverage.coverage_periods)) {
+          return coverage.coverage_periods.some(([from, to]) => date >= from && date <= to);
+        }
+        const from = coverage.source_from || `${date.slice(0, 4)}-01-01`;
+        const to = coverage.data_through || coverage.to;
+        return Boolean(to && date >= from && date <= to);
+      };
       const filters = { year: filterYear.value, month: filterMonth.value, confidence: filterConfidence.value };
       let dataset = null;
       let weatherDataset = null;
@@ -734,7 +803,7 @@
           : "Área: toda la región San Martín.";
         clearAreaButton.disabled = !hasArea;
       };
-      const getCalendarYear = () => selectedDate ? selectedDate.slice(0, 4) : filters.year === "all" ? "2026" : filters.year;
+      const getCalendarYear = () => selectedDate ? selectedDate.slice(0, 4) : calendarYearSelect.value;
       const formatWeatherValue = (value, unit, digits = 1) => (
         Number.isFinite(value) ? `${value.toLocaleString("es-PE", { minimumFractionDigits: digits, maximumFractionDigits: digits })} ${unit}` : "No disponible"
       );
@@ -766,6 +835,48 @@
         const risk = getRiskIndex(weather);
         return `${formatWeatherValue(weather.temperatureMeanC, "°C")}, humedad ${formatWeatherValue(weather.relativeHumidityMeanPct, "%")}, viento ${formatWeatherValue(weather.windSpeedMeanKmh, "km/h")}, lluvia 24 h ${formatWeatherValue(weather.precipitationMm, "mm")}${risk ? `; riesgo ${risk.level} (${risk.score}/100)` : ""}`;
       };
+      const renderClimateHistory = (history) => {
+        const table = document.getElementById("climate-history-table");
+        const head = table.querySelector("thead");
+        const body = table.querySelector("tbody");
+        const yearsInHistory = Object.keys(history.years).sort();
+        const header = document.createElement("tr");
+        const variableHeading = document.createElement("th");
+        variableHeading.scope = "col";
+        variableHeading.textContent = "Variable";
+        header.append(variableHeading);
+        yearsInHistory.forEach((year) => {
+          const cell = document.createElement("th");
+          cell.scope = "col";
+          cell.textContent = year;
+          cell.title = `${history.years[year].coverageFrom} a ${history.years[year].coverageTo} · ${history.years[year].coverageDays} días`;
+          header.append(cell);
+        });
+        head.replaceChildren(header);
+
+        const metrics = [
+          ["Temperatura media", "temperatureMeanC", "°C"],
+          ["Humedad relativa media", "relativeHumidityMeanPct", "%"],
+          ["Viento medio", "windSpeedMeanKmh", "km/h"],
+          ["Probabilidad media de precipitación", "precipitationProbability", "%"],
+        ];
+        const rows = metrics.map(([label, key, unit]) => {
+          const row = document.createElement("tr");
+          const rowHeading = document.createElement("th");
+          rowHeading.scope = "row";
+          rowHeading.textContent = label;
+          row.append(rowHeading);
+          yearsInHistory.forEach((year) => {
+            const cell = document.createElement("td");
+            const value = history.years[year][key];
+            cell.textContent = Number.isFinite(value) ? formatWeatherValue(value, unit, 1) : "No disponible";
+            cell.title = `${history.years[year][key + "Samples"] || 0} valores; cobertura ${history.years[year].coverageFrom} a ${history.years[year].coverageTo}`;
+            row.append(cell);
+          });
+          return row;
+        });
+        body.replaceChildren(...rows);
+      };
       const renderCalendarDayDetails = () => {
         if (!selectedDate || !dataset) {
           calendarDayDetails.replaceChildren();
@@ -775,6 +886,7 @@
           return;
         }
         const year = selectedDate.slice(0, 4);
+        const hasViirsCoverage = isViirsDateCovered(selectedDate);
         const count = getYearRecords(year).reduce((total, record) => (
           record[2] === selectedDate && matchesAreaAndConfidence(record) ? total + 1 : total
         ), 0);
@@ -787,7 +899,9 @@
         details.className = "weather-details";
         const risk = weather ? getRiskIndex(weather) : null;
         const items = [
-          ["Puntos de calor VIIRS", count ? `Sí · ${detectionLabel}` : "No se registraron detecciones en los datos"],
+          ["Puntos de calor VIIRS", hasViirsCoverage
+            ? count ? `Sí · ${detectionLabel}` : "No se registraron detecciones en los datos"
+            : "Sin cobertura VIIRS para esta fecha; solo contexto meteorológico"],
           ["Temperatura media / máxima / mínima", weather
             ? `${formatWeatherValue(weather.temperatureMeanC, "°C")} / ${formatWeatherValue(weather.temperatureMaxC, "°C")} / ${formatWeatherValue(weather.temperatureMinC, "°C")}`
             : unavailableWeather],
@@ -871,7 +985,9 @@
         }
         const note = document.createElement("p");
         note.className = "weather-note";
-        note.textContent = `${selectedDate} · Índice basado en promedios diarios regionales; humedad del suelo y CAPE son variables de contexto y no suman al puntaje. La detección VIIRS es un punto de calor satelital y no confirma por sí sola un incendio único.`;
+        note.textContent = hasViirsCoverage
+          ? `${selectedDate} · Índice basado en promedios diarios regionales; humedad del suelo y CAPE son variables de contexto y no suman al puntaje. La detección VIIRS es un punto de calor satelital y no confirma por sí sola un incendio único.`
+          : `${selectedDate} · Se muestran únicamente variables meteorológicas; no hay cobertura VIIRS para esta fecha.`;
         calendarDayDetails.replaceChildren(...(riskBreakdown ? [details, riskBreakdown, note] : [details, note]));
       };
 
@@ -960,11 +1076,14 @@
 
       const renderCalendar = () => {
         const calendarYear = getCalendarYear();
-        if (!dataset || !dataset.records || !Array.isArray(dataset.records[calendarYear])) {
+        const hasViirsCoverage = Boolean(dataset?.coverage?.[calendarYear]);
+        if (!dataset || !weatherDataset) {
           calendar.replaceChildren();
           const message = document.createElement("p");
           message.className = "calendar-note";
-          message.textContent = `No hay cobertura disponible para ${calendarYear}. Selecciona otro año para consultar el calendario.`;
+          message.textContent = weatherLoadError
+            ? "No se pudo cargar el archivo climático; no se puede mostrar el calendario."
+            : "Cargando el calendario climático…";
           calendar.replaceChildren(message);
           return;
         }
@@ -976,6 +1095,45 @@
         });
         dailyCounts.forEach((count) => { maximum = Math.max(maximum, count); });
         const colors = ["#ebf3ee", "#b4d5c1", "#6ea883", "#287252"];
+        const climateColors = ["#335c81", "#367f82", "#b38738", "#b45148"];
+        const hasPartialViirsCoverage = Array.isArray(dataset.coverage?.[calendarYear]?.coverage_periods)
+          && (dataset.coverage[calendarYear].coverage_periods.length !== 1
+            || dataset.coverage[calendarYear].coverage_periods[0][0] !== `${calendarYear}-01-01`
+            || dataset.coverage[calendarYear].coverage_periods[0][1] !== `${calendarYear}-12-31`);
+        const climateTemperatures = Object.entries(weatherDataset.daily)
+          .filter(([date, weather]) => date.startsWith(`${calendarYear}-`) && Number.isFinite(weather.temperatureMeanC))
+          .map(([, weather]) => weather.temperatureMeanC);
+        const hasClimateCoverage = climateTemperatures.length > 0;
+        const temperatureIntensity = (temperature) => temperature < 22 ? 0 : temperature < 24 ? 1 : temperature < 26 ? 2 : 3;
+        const legend = document.getElementById("calendar-legend");
+        if (hasViirsCoverage) {
+          legend.setAttribute("aria-label", hasPartialViirsCoverage
+            ? "Intensidad VIIRS en fechas cubiertas y temperatura en las fechas sin cobertura"
+            : "Intensidad de detecciones VIIRS");
+          const swatches = (palette) => palette.map((color) => {
+            const swatch = document.createElement("span");
+            swatch.style.backgroundColor = color;
+            return swatch;
+          });
+          legend.replaceChildren(
+            document.createTextNode(hasPartialViirsCoverage ? "VIIRS: menos " : "Menos "),
+            ...swatches(colors),
+            document.createTextNode(hasPartialViirsCoverage ? " más · Clima: <22 °C " : " Más "),
+            ...(hasPartialViirsCoverage ? swatches(climateColors) : []),
+            ...(hasPartialViirsCoverage ? [document.createTextNode(" ≥26 °C · Rayado: sin datos")] : []),
+          );
+        } else {
+          legend.setAttribute("aria-label", "Rango de temperatura media diaria");
+          legend.replaceChildren(
+            document.createTextNode("Temperatura media: <22 °C "),
+            ...climateColors.map((color) => {
+              const swatch = document.createElement("span");
+              swatch.style.backgroundColor = color;
+              return swatch;
+            }),
+            document.createTextNode(" ≥26 °C · Rayado: sin datos"),
+          );
+        }
         calendar.replaceChildren();
 
         for (let monthIndex = 0; monthIndex < 12; monthIndex += 1) {
@@ -998,11 +1156,13 @@
               continue;
             }
             const date = `${calendarYear}-${monthNumber}-${String(day).padStart(2, "0")}`;
-            if (calendarYear === "2026" && date > "2026-11-07") {
+            const weather = weatherDataset.daily[date];
+            const dateHasViirsCoverage = isViirsDateCovered(date);
+            if ((!dateHasViirsCoverage && !weather) || (calendarYear === "2026" && date > "2026-11-07")) {
               const unavailable = document.createElement("span");
               unavailable.className = "calendar-empty unavailable";
-              unavailable.title = `${date}: sin cobertura de datos`;
-              unavailable.setAttribute("aria-label", `${date}, sin cobertura de datos`);
+              unavailable.title = `${date}: sin cobertura de datos meteorológicos`;
+              unavailable.setAttribute("aria-label", `${date}, sin cobertura de datos meteorológicos`);
               row.append(unavailable);
               continue;
             }
@@ -1011,15 +1171,27 @@
             const cell = document.createElement("button");
             cell.type = "button";
             cell.className = `calendar-day${filters.month && filters.month !== monthNumber ? " dimmed" : ""}${selectedDate === date ? " selected" : ""}`;
-            cell.style.backgroundColor = colors[intensity];
-            cell.title = `${date}: ${formatCount(count)} detecciones VIIRS; ${getWeatherDescription(date)}`;
+            const weatherText = getWeatherDescription(date);
+            if (dateHasViirsCoverage) {
+              cell.style.backgroundColor = colors[intensity];
+              cell.title = `${date}: ${formatCount(count)} detecciones VIIRS; ${weatherText}`;
+            } else {
+              const temperature = weather.temperatureMeanC;
+              cell.style.backgroundColor = Number.isFinite(temperature)
+                ? climateColors[temperatureIntensity(temperature)]
+                : "#46515c";
+              cell.title = `${date}: sin cobertura VIIRS; temperatura media ${formatWeatherValue(temperature, "°C")}; ${weatherText}`;
+            }
             cell.setAttribute("role", "gridcell");
-            cell.setAttribute("aria-label", `${date}, ${formatCount(count)} detecciones VIIRS; ${getWeatherDescription(date)}`);
+            cell.setAttribute("aria-label", dateHasViirsCoverage
+              ? `${date}, ${formatCount(count)} detecciones VIIRS; ${weatherText}`
+              : `${date}, sin cobertura VIIRS; temperatura media ${formatWeatherValue(weather.temperatureMeanC, "°C")}; ${weatherText}`);
             cell.addEventListener("click", () => {
               filters.year = calendarYear;
               filters.month = monthNumber;
               selectedDate = date;
               filterYear.value = calendarYear;
+              calendarYearSelect.value = calendarYear;
               filterMonth.value = monthNumber;
               clearDayButton.disabled = false;
               refreshDashboard();
@@ -1030,7 +1202,11 @@
         }
         const partial = calendarYear === "2026" ? " · detecciones regionales hasta el 5 nov.; fuentes disponibles hasta el 7 nov" : "";
         const climateStatus = weatherLoadError ? " · clima no disponible" : weatherDataset ? "" : " · cargando clima";
-        calendarSummary.textContent = `Actividad diaria ${calendarYear}${filters.confidence === "all" ? "" : ` · confianza ${confidenceNames[filters.confidence]}`}${areaPolygon ? " · área dibujada" : ""}${partial}${climateStatus}. Pulsa un día para filtrar el mapa y ver el resumen del día.`;
+        calendarSummary.textContent = hasViirsCoverage
+          ? `Actividad diaria ${calendarYear}${hasPartialViirsCoverage ? " · VIIRS solo en fechas con cobertura; otros días muestran temperatura" : ""}${filters.confidence === "all" ? "" : ` · confianza ${confidenceNames[filters.confidence]}`}${areaPolygon ? " · área dibujada" : ""}${partial}${climateStatus}. Pulsa un día para filtrar el mapa y ver el resumen del día.`
+          : hasClimateCoverage
+            ? `Clima diario ${calendarYear}: el color muestra temperatura media; el calendario solo tiene datos meteorológicos, no detecciones VIIRS. Pulsa un día para consultar sus variables.`
+            : `No hay datos meteorológicos disponibles para ${calendarYear}.`;
         renderCalendarDayDetails();
       };
 
@@ -1094,6 +1270,16 @@
         forecastMethod.textContent = `Escenario de continuidad: promedio simple de 2025 (${formatProjection(year2025)} detecciones/año) y 2026 anualizado (${formatProjection(year2026)}; datos hasta ${dataset.coverage["2026"].to}). Se mantiene ese nivel como referencia para los tres años; el rango solo refleja esos dos valores observados y no es un intervalo de confianza. Es una proyección exploratoria, no predice incendios confirmados ni reemplaza una evaluación oficial.`;
       };
       const monthDays = (year, monthIndex) => {
+        const coverage = dataset?.coverage?.[year];
+        if (Array.isArray(coverage?.coverage_periods)) {
+          const daysInMonth = new Date(Number(year), monthIndex + 1, 0).getDate();
+          let coveredDays = 0;
+          for (let day = 1; day <= daysInMonth; day += 1) {
+            const date = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+            if (isViirsDateCovered(date)) coveredDays += 1;
+          }
+          return coveredDays;
+        }
         if (year === "2026" && monthIndex === 10) return 7;
         return new Date(Number(year), monthIndex + 1, 0).getDate();
       };
@@ -1102,7 +1288,10 @@
         const availableYears = getAvailableYears();
         const monthlyRates = Object.fromEntries(availableYears.map((year) => [
           year,
-          counts[year].map((count, monthIndex) => count / monthDays(year, monthIndex)),
+          counts[year].map((count, monthIndex) => {
+            const coveredDays = monthDays(year, monthIndex);
+            return coveredDays ? count / coveredDays : null;
+          }),
         ]));
         if (typeof Chart !== "function") {
           filterStatus.textContent += " Chart.js no se pudo cargar; el calendario y los filtros siguen disponibles.";
@@ -1136,7 +1325,10 @@
                     label(context) {
                       const year = context.dataset.label;
                       const monthIndex = context.dataIndex;
-                      return `${year}: ${formatCount(context.dataset.rawCounts[monthIndex])} detecciones en ${context.dataset.coverageDays[monthIndex]} días (${context.parsed.y.toFixed(1)} por día)`;
+                      const coveredDays = context.dataset.coverageDays[monthIndex];
+                      return coveredDays
+                        ? `${year}: ${formatCount(context.dataset.rawCounts[monthIndex])} detecciones en ${coveredDays} días (${context.parsed.y.toFixed(1)} por día)`
+                        : `${year}: sin cobertura VIIRS`;
                     },
                   },
                 },
@@ -1208,7 +1400,14 @@
         const rangeEnd = availableYears.at(-1) || "2026";
         const period = selectedDate || `${filters.year === "all" ? `${rangeStart}–${rangeEnd}` : filters.year}${filters.month ? ` · mes ${Number(filters.month)}` : ""}`;
         const confidence = filters.confidence === "all" ? "todas las confianzas" : `confianza ${confidenceNames[filters.confidence]}`;
-        filterStatus.textContent = `${formatCount(matchingCount)} detecciones coinciden con ${period} y ${confidence}${areaPolygon ? " en el área dibujada" : ""}.`;
+        const coveragePeriods = dataset.coverage?.[filters.year]?.coverage_periods;
+        const coverageNote = filters.year !== "all" && Array.isArray(coveragePeriods)
+          && (coveragePeriods.length !== 1
+            || coveragePeriods[0][0] !== `${filters.year}-01-01`
+            || coveragePeriods[0][1] !== `${filters.year}-12-31`)
+          ? " · cobertura VIIRS parcial"
+          : "";
+        filterStatus.textContent = `${formatCount(matchingCount)} detecciones coinciden con ${period} y ${confidence}${areaPolygon ? " en el área dibujada" : ""}${coverageNote}.`;
         clearDayButton.disabled = !selectedDate;
         updateAreaStatus();
         renderRecentActivity();
@@ -1224,9 +1423,19 @@
           filters.year = filterYear.value;
           filters.month = filterMonth.value;
           filters.confidence = filterConfidence.value;
+          calendarYearSelect.value = filters.year === "all" ? "2026" : filters.year;
           if (selectedDate && (filters.year !== previousYear || filters.month !== previousMonth)) selectedDate = "";
           refreshDashboard();
         });
+      });
+      calendarYearSelect.addEventListener("change", () => {
+        const previousYear = filters.year;
+        filters.year = calendarYearSelect.value;
+        filters.month = "";
+        filterYear.value = filters.year;
+        filterMonth.value = "";
+        if (selectedDate && filters.year !== previousYear) selectedDate = "";
+        refreshDashboard();
       });
       clearDayButton.addEventListener("click", () => {
         selectedDate = "";
@@ -1266,7 +1475,7 @@
         refreshDashboard();
       });
 
-      fetch("./datos_viirs_san_martin_2024_2026.json?rev=nombres-puntos-v1")
+      fetch("./datos_viirs_san_martin_2021_2026.json?rev=viirs-historico-2021-2026-v1")
         .then((response) => {
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           return response.json();
@@ -1285,6 +1494,21 @@
             }
           });
           dataset = data;
+          const annualTotals = document.getElementById("annual-viirs-totals");
+          annualTotals.textContent = observedYears.map((year) => {
+            const coverage = data.coverage[year];
+            const partialCoverage = Array.isArray(coverage.coverage_periods)
+              && (coverage.coverage_periods.length !== 1
+                || coverage.coverage_periods[0][0] !== `${year}-01-01`
+                || coverage.coverage_periods[0][1] !== `${year}-12-31`);
+            const end = coverage.to && coverage.to !== `${year}-12-31` ? ` · detecciones hasta ${coverage.to}` : "";
+            const periods = partialCoverage && Array.isArray(coverage.coverage_periods)
+              ? ` (${coverage.coverage_periods.map(([from, to]) => `${from}–${to}`).join(", ")})`
+              : "";
+            return `${year}: ${formatCount(coverage.count)}${partialCoverage ? " · cobertura parcial" : ""}${periods}${end}`;
+          }).join(". ") + ". Los totales reúnen los satélites disponibles y pueden incluir observaciones del mismo foco.";
+          const dataCoverageNote = document.getElementById("data-coverage-note");
+          dataCoverageNote.textContent = `Cobertura VIIRS regional de 2021 a 2026. 2021 y 2023 reúnen los archivos anuales disponibles; en 2022 la fuente solo cubre los días indicados en el calendario, y 2026 llega hasta ${data.coverage["2026"].to}. Los tramos recientes de 2026 usan datos near-real-time sujetos a actualización. Son detecciones satelitales, no incendios confirmados; varios satélites pueden observar el mismo foco.`;
           filterStatus.textContent = "Datos cargados; calculando calendario y estadísticas…";
           refreshDashboard();
           sendDatasetToMap();
@@ -1294,7 +1518,7 @@
           filterStatus.textContent = "Error al cargar los datos VIIRS. Verifica tu conexión y vuelve a cargar la página.";
         });
 
-      fetch("./clima_san_martin_diario_2024_2026.json?rev=clima-diario-v1")
+      fetch("./clima_san_martin_diario_2021_2026.json?rev=calendario-clima-2021-2026-v1")
         .then((response) => {
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           return response.json();
@@ -1324,6 +1548,26 @@
           calendarSummary.textContent = "No se pudo cargar el archivo meteorológico. Las detecciones y el calendario VIIRS siguen disponibles.";
           renderCalendarDayDetails();
           if (dataset) renderCalendar();
+        });
+
+      fetch("./resumen_climatico_anual_2021_2026.json?rev=resumen-clima-v1")
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.json();
+        })
+        .then((data) => {
+          if (!data || !data.years || !["2021", "2022", "2023", "2024", "2025", "2026"].every((year) => data.years[year])) {
+            throw new Error("El resumen climático no incluye la cobertura esperada de 2021 a 2026.");
+          }
+          renderClimateHistory(data);
+        })
+        .catch((error) => {
+          console.error("No se pudo cargar el resumen meteorológico anual:", error);
+          const body = document.querySelector("#climate-history-table tbody");
+          const message = document.createElement("td");
+          message.colSpan = 7;
+          message.textContent = "No se pudo cargar el resumen climático. Las detecciones VIIRS siguen disponibles.";
+          body.replaceChildren(message);
         });
     });
   </script>

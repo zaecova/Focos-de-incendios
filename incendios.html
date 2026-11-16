@@ -243662,12 +243662,8 @@
     });
     previousMarkers.forEach((marker) => viirsMap.removeLayer(marker));
 
-    const years = ["2024", "2025", "2026"];
-    const yearLabels = {
-        "2024": "2024 (40.482)",
-        "2025": "2025 (23.273)",
-        "2026": "2026 (13.611)",
-    };
+    const years = ["2021", "2022", "2023", "2024", "2025", "2026"];
+    const yearLabels = Object.fromEntries(years.map((year) => [year, year]));
     const satelliteNames = { N20: "NOAA-20 / JPSS-1", N21: "NOAA-21", SNPP: "Suomi-NPP" };
     const confidenceLabels = { l: "Baja (l)", n: "Nominal (n)", h: "Alta (h)" };
     const pointLayers = {};
@@ -243793,7 +243789,7 @@
             pointLayers["2026"].addTo(viirsMap);
         }
         lastYearFilter = filters.year;
-        const period = filters.date || `${filters.year === "all" ? "2024\u20132026" : filters.year}${filters.month ? ` \u00b7 mes ${Number(filters.month)}` : ""}`;
+        const period = filters.date || `${filters.year === "all" ? "2021\u20132026" : filters.year}${filters.month ? ` \u00b7 mes ${Number(filters.month)}` : ""}`;
         setStatus(`${matchingCount.toLocaleString("es-PE")} detecciones coinciden con ${period}${filters.polygon ? " y el \u00e1rea dibujada" : ""}.`);
     };
     const drawPolygon = L.Draw && L.Draw.Polygon
@@ -243840,6 +243836,9 @@
                         || typeof record[2] !== "string" || !satelliteNames[record[6]])) {
                         throw new Error(`Se encontraron registros invalidos en ${year}.`);
                     }
+                    yearLabels[year] = `${year} (${data.coverage[year].count.toLocaleString("es-PE")})`;
+                    layerControl.removeLayer(pointLayers[year]);
+                    layerControl.addOverlay(pointLayers[year], `Detecciones VIIRS \u00b7 San Mart\u00edn \u00b7 ${yearLabels[year]}`);
                 });
                 recordsByYear = data.records;
                 applyFilters();
