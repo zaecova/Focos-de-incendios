@@ -5,19 +5,53 @@ It is a harmonized schema, not a cross-sensor radiometric calibration.
 """
 
 import csv
+import io
 import json
 from collections import Counter
 from datetime import date, timedelta
 from pathlib import Path
+from zipfile import ZipFile
 
 
 ROOT = Path(__file__).resolve().parent
 VIIRS_FILE = ROOT / "datos_viirs_san_martin_2021_2026.json"
 OUTPUT_FILE = ROOT / "datos_focos_harmonizados_2021_2026.json"
 MAP_FILE = ROOT / "incendios.html"
-MODIS_FILES = sorted(ROOT.glob("DL_FIRE_M-C61_*/fire_archive_M-C61_*.csv")) + sorted(
-    ROOT.glob("DL_FIRE_M-C61_*/fire_nrt_M-C61_*.csv")
-)
+
+def discover_modis_files():
+    files = set()
+    patterns = [
+        "fire_archive_M-C61_*.csv", "fire_nrt_M-C61_*.csv",
+        "DL_FIRE_M-C61_*/fire_archive_M-C61_*.csv", "DL_FIRE_M-C61_*/fire_nrt_M-C61_*.csv",
+        "MODIS/**/fire_archive_M-C61_*.csv", "MODIS/**/fire_nrt_M-C61_*.csv",
+    ]
+    for pattern in patterns:
+        files.update(ROOT.glob(pattern))
+    sources = [(path, None) for path in sorted(files)]
+    archives = set(ROOT.glob("MODIS/DL_FIRE_M-C61_*.zip")) | set(ROOT.glob("DL_FIRE_M-C61_*.zip"))
+    for archive in sorted(archives):
+        with ZipFile(archive) as zipped:
+            for member in zipped.namelist():
+                name = Path(member).name
+                if name.startswith(("fire_archive_M-C61_", "fire_nrt_M-C61_")) and name.endswith(".csv"):
+                    sources.append((archive, member))
+    return sources
+
+
+MODIS_FILES = discover_modis_files()
+
+
+def source_label(path, member=None):
+    relative = path.relative_to(ROOT).as_posix()
+    return f"{relative}!{member}" if member else relative
+
+
+def open_source(path, member=None):
+    if member:
+        archive = ZipFile(path)
+        binary = archive.open(member)
+        return archive, io.TextIOWrapper(binary, encoding="utf-8-sig", newline="")
+    return None, path.open("r", encoding="utf-8-sig", newline="")
 
 
 def load_boundary_ring():
@@ -88,11 +122,13 @@ def read_modis(ring):
     max_lat = max(point[1] for point in ring)
     seen = set()
 
-    for path in MODIS_FILES:
+    for path, member in MODIS_FILES:
         if not path.is_file():
-            raise FileNotFoundError(f"Falta el archivo MODIS: {path}")
-        print(f"Procesando {path.name}...", flush=True)
-        with path.open("r", encoding="utf-8-sig", newline="") as handle:
+            raise FileNotFoundError(f"Falta el archivo MODIS: {source_label(path, member)}")
+        label = source_label(path, member)
+        print(f"Procesando {label}...", flush=True)
+        archive, handle = open_source(path, member)
+        try:
             reader = csv.DictReader(handle)
             required = {"latitude", "longitude", "acq_date", "acq_time", "satellite", "confidence", "frp"}
             if not required.issubset(reader.fieldnames or []):
@@ -126,6 +162,10 @@ def read_modis(ring):
                 ])
                 regional_dates.add(acquired)
                 source_counts[satellite] += 1
+        finally:
+            handle.close()
+            if archive:
+                archive.close()
 
     records.sort(key=lambda row: (row[2], row[3], row[6], row[0], row[1]))
     print(f"MODIS: {len(records):,} focos regionales; {len(regional_dates):,} fechas con detecciones.", flush=True)
@@ -190,7 +230,7 @@ def main():
             meta["from"] = min(filter(None, [meta.get("from"), first_modis]), default=first_modis)
             meta["to"] = max(filter(None, [meta.get("to"), last_modis]), default=last_modis)
             meta["data_through"] = max(filter(None, [meta.get("data_through"), year_source_dates[-1]]), default=last_modis)
-            meta["modis_files"] = [path.relative_to(ROOT).as_posix() for path in MODIS_FILES]
+            meta["modis_files"] = [source_label(path, member) for path, member in MODIS_FILES]
             meta["modis_satellites"] = dict(sorted(Counter(
                 record[6] for record in records[year] if record[10] == "MODIS"
             ).items()))
@@ -213,7 +253,7 @@ def main():
             "modis_detection_type": "Only FIRMS type 0 presumed vegetation fires retained",
             "duplicate_policy": "Exact MODIS archive/NRT duplicates removed; cross-sensor detections retained",
             "limitation": "This standardizes fields; it does not calibrate sensor sensitivity or equate detection counts across MODIS and VIIRS.",
-            "modis_files": [path.relative_to(ROOT).as_posix() for path in MODIS_FILES],
+            "modis_files": [source_label(path, member) for path, member in MODIS_FILES],
             "modis_source_dates": [min(all_modis_dates), max(all_modis_dates)],
         },
     }

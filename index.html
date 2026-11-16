@@ -548,9 +548,9 @@
       </header>
 
       <p class="historical">
-        <strong>Datos históricos:</strong> VIIRS cubre 2021–2026 y MODIS está
-        disponible aquí para 2026. Se unifican sus campos y se conserva el sensor
-        de origen para filtrar; esta versión no calibra diferencias de sensibilidad.
+        <strong>Datos históricos:</strong> VIIRS y MODIS cubren de 2021 a 2026.
+        Se unifican sus campos y se conserva el sensor de origen para filtrar;
+        esta versión no calibra diferencias de sensibilidad.
         Los focos satelitales no equivalen por sí solos a incendios confirmados.
       </p>
 
@@ -629,7 +629,7 @@
             <label class="filter-field" for="filter-sensor">Sensor
               <select id="filter-sensor">
                 <option value="VIIRS" selected>VIIRS (serie histórica)</option>
-                <option value="MODIS">MODIS (2026 disponible)</option>
+                <option value="MODIS">MODIS (2021–2026)</option>
                 <option value="all">Todos</option>
               </select>
             </label>
@@ -1375,7 +1375,7 @@
         }
         if (filters.sensor !== "VIIRS") {
           forecastGrid.textContent = "Selecciona solo VIIRS para consultar el escenario de referencia histórico.";
-          forecastMethod.textContent = "MODIS solo tiene datos cargados para 2026 y el total combinado no está calibrado entre sensores; no se extrapola a años futuros.";
+          forecastMethod.textContent = "La proyección usa una serie VIIRS homogénea; no extrapola los datos MODIS ni el total combinado entre sensores.";
           return;
         }
         const referenceYears = ["2025", "2026"];
@@ -1504,8 +1504,8 @@
           alerts.push("Intervalo personalizado: revisa la serie mensual; no se calcula una anomalía histórica para este rango.");
         } else if (filters.sensor === "all") {
           alerts.push("El análisis combinado MODIS + VIIRS no se compara entre sensores porque no existe calibración intersensor.");
-        } else if (filters.sensor === "MODIS") {
-          alerts.push("No hay años MODIS históricos cargados para establecer una referencia; se muestra 2026 sin comparación.");
+        } else if (filters.sensor === "MODIS" && !comparisonYears.length) {
+          alerts.push("No hay años MODIS históricos en este filtro para establecer una referencia.");
         } else if (!Object.prototype.hasOwnProperty.call(monthlyRates, currentYear)) {
           const latestYear = availableYears.at(-1);
           if (latestYear) {
@@ -1574,7 +1574,7 @@
             || coveragePeriods[0][1] !== `${filters.year}-12-31`)
           ? ` · cobertura ${sensorLabel} parcial`
           : "";
-        filterStatus.textContent = `${formatCount(matchingCount)} detecciones ${sensorLabel} coinciden con ${period} y ${confidence}${areaPolygon ? " en el área dibujada" : ""}${coverageNote}. MODIS solo tiene cobertura cargada en 2026; el conteo combinado no está calibrado entre sensores.`;
+        filterStatus.textContent = `${formatCount(matchingCount)} detecciones ${sensorLabel} coinciden con ${period} y ${confidence}${areaPolygon ? " en el área dibujada" : ""}${coverageNote}. El conteo combinado no está calibrado entre sensores.`;
         clearDayButton.disabled = !selectedDate;
         document.getElementById("download-csv").disabled = matchingCount === 0;
         document.getElementById("download-chart").disabled = !monthlyChart;
@@ -1684,7 +1684,7 @@
         refreshDashboard();
       });
 
-      fetch("./datos_focos_harmonizados_2021_2026.json?rev=harmonizado-modis-viirs-v1")
+      fetch("./datos_focos_harmonizados_2021_2026.json?rev=harmonizado-modis-viirs-v2")
         .then((response) => {
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           return response.json();
@@ -1719,7 +1719,8 @@
             return `${year}: ${formatCount(coverage.count)} (${sources})${partialCoverage ? " · cobertura parcial" : ""}${periods}${end}`;
           }).join(". ") + ". Los conteos son detecciones y pueden repetir un mismo foco entre horas o sensores.";
           const dataCoverageNote = document.getElementById("data-coverage-note");
-          dataCoverageNote.textContent = `VIIRS está disponible entre 2021 y 2026; MODIS se incorporó para 2026 (${formatCount(data.coverage["2026"].modis_count || 0)} focos regionales). La fuente MODIS local no incluye años anteriores. Se usa un esquema común, sin calibración de sensibilidad entre sensores; por eso compara cada sensor por separado cuando necesites analizar tendencias. Las detecciones satelitales no son incendios confirmados.`;
+          const modisYears = observedYears.filter((year) => (data.coverage[year].modis_count || 0) > 0);
+          dataCoverageNote.textContent = `VIIRS y MODIS disponibles de ${observedYears[0]} a ${observedYears.at(-1)}; MODIS tiene registros en ${modisYears.join(", ") || "ningún año"}. El esquema común conserva el sensor, pero no calibra las diferencias de sensibilidad; compara cada sensor por separado para analizar tendencias. Las detecciones satelitales no son incendios confirmados.`;
           filterStatus.textContent = "Datos cargados; calculando calendario y estadísticas…";
           refreshDashboard();
           sendDatasetToMap();
