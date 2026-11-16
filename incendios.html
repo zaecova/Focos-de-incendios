@@ -243717,12 +243717,15 @@
     };
     const matchesFilters = (record) => {
         const date = record[2];
+        const modisYear = /^MODIS-202[1-6]$/.test(filters.sensor) ? filters.sensor.slice(-4) : null;
         return (filters.year === "all" || date.slice(0, 4) === filters.year)
             && (!filters.month || date.slice(5, 7) === filters.month)
             && (!filters.from || date >= filters.from)
             && (!filters.to || date <= filters.to)
             && (!filters.date || date === filters.date)
-            && (filters.sensor === "all" || record[10] === filters.sensor)
+            && (filters.sensor === "all" || (modisYear
+                ? record[10] === "MODIS" && date.slice(0, 4) === modisYear
+                : record[10] === filters.sensor))
             && (filters.confidence === "all" || record[5] === filters.confidence)
             && pointInPolygon(record[0], record[1], filters.polygon);
     };
@@ -243803,7 +243806,8 @@
         const period = filters.date || (filters.from || filters.to
             ? `${filters.from || "inicio"} \u2013 ${filters.to || "actualidad"}`
             : `${filters.year === "all" ? "2021\u20132026" : filters.year}${filters.month ? ` \u00b7 mes ${Number(filters.month)}` : ""}`);
-        const sourceLabel = filters.sensor === "all" ? "MODIS + VIIRS" : filters.sensor;
+        const sourceLabel = filters.sensor === "all" ? "MODIS + VIIRS"
+            : filters.sensor.startsWith("MODIS-") ? `MODIS ${filters.sensor.slice(-4)}` : filters.sensor;
         setStatus(`${matchingCount.toLocaleString("es-PE")} focos ${sourceLabel} coinciden con ${period}${filters.polygon ? " y el \u00e1rea dibujada" : ""}.`);
     };
     const drawPolygon = L.Draw && L.Draw.Polygon
@@ -243868,7 +243872,8 @@
             if (!next || !["all", ...years].includes(next.year)
                 || (next.month && !/^\d{2}$/.test(next.month))
                 || !["all", "l", "n", "h"].includes(next.confidence)
-                || !["all", "MODIS", "VIIRS"].includes(next.sensor || "VIIRS")
+                || (!(["all", "MODIS", "VIIRS"].includes(next.sensor || "VIIRS")
+                    || /^MODIS-202[1-6]$/.test(next.sensor || "")))
                 || (next.from && !/^\d{4}-\d{2}-\d{2}$/.test(next.from))
                 || (next.to && !/^\d{4}-\d{2}-\d{2}$/.test(next.to))
                 || (next.polygon && !isValidPolygon(next.polygon))) return;

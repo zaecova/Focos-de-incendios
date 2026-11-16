@@ -629,7 +629,14 @@
             <label class="filter-field" for="filter-sensor">Sensor
               <select id="filter-sensor">
                 <option value="VIIRS" selected>VIIRS (serie histórica)</option>
-                <option value="MODIS">MODIS (2021–2026)</option>
+                <optgroup label="MODIS por año">
+                  <option value="MODIS-2021">MODIS · 2021</option>
+                  <option value="MODIS-2022">MODIS · 2022</option>
+                  <option value="MODIS-2023">MODIS · 2023</option>
+                  <option value="MODIS-2024">MODIS · 2024</option>
+                  <option value="MODIS-2025">MODIS · 2025</option>
+                  <option value="MODIS-2026">MODIS · 2026</option>
+                </optgroup>
                 <option value="all">Todos</option>
               </select>
             </label>
@@ -722,15 +729,15 @@
       </ol>
 
       <div class="modis-downloads" aria-labelledby="modis-download-heading">
-        <p class="legend-title" id="modis-download-heading">Descargas MODIS por a?o</p>
-        <p class="chart-note">Cada CSV contiene solo detecciones MODIS con fecha de adquisici?n en el a?o indicado, recortadas a San Mart?n. Formato CSV compatible con hojas de c?lculo.</p>
+        <p class="legend-title" id="modis-download-heading">Descargas MODIS por año</p>
+        <p class="chart-note">Cada CSV contiene solo detecciones MODIS con fecha de adquisición en el año indicado, recortadas a San Martín. Formato CSV compatible con hojas de cálculo.</p>
         <div class="area-actions">
-          <a class="action-button" href="./descargas/modis_focos_san_martin_2021.csv" download="modis_focos_san_martin_2021.csv">MODIS 2021 ? CSV</a>
-          <a class="action-button" href="./descargas/modis_focos_san_martin_2022.csv" download="modis_focos_san_martin_2022.csv">MODIS 2022 ? CSV</a>
-          <a class="action-button" href="./descargas/modis_focos_san_martin_2023.csv" download="modis_focos_san_martin_2023.csv">MODIS 2023 ? CSV</a>
-          <a class="action-button" href="./descargas/modis_focos_san_martin_2024.csv" download="modis_focos_san_martin_2024.csv">MODIS 2024 ? CSV</a>
-          <a class="action-button" href="./descargas/modis_focos_san_martin_2025.csv" download="modis_focos_san_martin_2025.csv">MODIS 2025 ? CSV</a>
-          <a class="action-button" href="./descargas/modis_focos_san_martin_2026.csv" download="modis_focos_san_martin_2026.csv">MODIS 2026 ? CSV</a>
+          <a class="action-button" href="./descargas/modis_focos_san_martin_2021.csv" download="modis_focos_san_martin_2021.csv">MODIS 2021 - CSV</a>
+          <a class="action-button" href="./descargas/modis_focos_san_martin_2022.csv" download="modis_focos_san_martin_2022.csv">MODIS 2022 - CSV</a>
+          <a class="action-button" href="./descargas/modis_focos_san_martin_2023.csv" download="modis_focos_san_martin_2023.csv">MODIS 2023 - CSV</a>
+          <a class="action-button" href="./descargas/modis_focos_san_martin_2024.csv" download="modis_focos_san_martin_2024.csv">MODIS 2024 - CSV</a>
+          <a class="action-button" href="./descargas/modis_focos_san_martin_2025.csv" download="modis_focos_san_martin_2025.csv">MODIS 2025 - CSV</a>
+          <a class="action-button" href="./descargas/modis_focos_san_martin_2026.csv" download="modis_focos_san_martin_2026.csv">MODIS 2026 - CSV</a>
         </div>
       </div>
 
@@ -769,18 +776,29 @@
       const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
       const years = ["2021", "2022", "2023", "2024", "2025", "2026"];
       const confidenceNames = { l: "baja", n: "nominal", h: "alta" };
+      const getModisYear = (sensor) => /^MODIS-202[1-6]$/.test(sensor) ? sensor.slice(-4) : null;
+      const getSensorSource = (sensor) => getModisYear(sensor) ? "MODIS" : sensor;
+      const getSensorLabel = (sensor) => getModisYear(sensor) ? `MODIS ${getModisYear(sensor)}` : sensor === "all" ? "MODIS + VIIRS" : sensor;
+      const matchesSelectedSensor = (record) => {
+        const modisYear = getModisYear(filters.sensor);
+        return filters.sensor === "all"
+          || (modisYear ? record[10] === "MODIS" && record[2].slice(0, 4) === modisYear : record[10] === filters.sensor);
+      };
       const getCoveragePeriods = (year) => {
         const coverage = dataset?.coverage?.[year];
         if (!coverage) return [];
-        if (filters.sensor === "VIIRS") return coverage.viirs_coverage_periods || [];
-        if (filters.sensor === "MODIS") return coverage.modis_coverage_periods || [];
+        if (getSensorSource(filters.sensor) === "VIIRS") return coverage.viirs_coverage_periods || [];
+        if (getSensorSource(filters.sensor) === "MODIS") return coverage.modis_coverage_periods || [];
         return coverage.coverage_periods || [];
       };
       const hasSensorYearCoverage = (year) => {
+        const modisYear = getModisYear(filters.sensor);
+        if (modisYear && year !== modisYear) return false;
         const records = dataset?.records?.[year];
         const coverage = dataset?.coverage?.[year];
         if (!Array.isArray(records) || !coverage) return false;
-        const sourceCount = filters.sensor === "all" ? coverage.count : coverage.source_counts?.[filters.sensor] || 0;
+        const source = getSensorSource(filters.sensor);
+        const sourceCount = source === "all" ? coverage.count : coverage.source_counts?.[source] || 0;
         return sourceCount > 0 && getCoveragePeriods(year).length > 0;
       };
       const getAvailableYears = () => {
@@ -831,7 +849,7 @@
       };
       const matchesAreaAndConfidence = (record) => {
         const confidenceMatches = filters.confidence === "all" || record[5] === filters.confidence;
-        const sensorMatches = filters.sensor === "all" || record[10] === filters.sensor;
+        const sensorMatches = matchesSelectedSensor(record);
         const dateMatches = (!filters.from || record[2] >= filters.from) && (!filters.to || record[2] <= filters.to);
         return confidenceMatches && sensorMatches && dateMatches && isInsidePolygon(record[0], record[1], areaPolygon);
       };
@@ -877,7 +895,7 @@
           ["indicador", "valor"],
           ["fecha_desde", filters.from || orderedDates[0] || ""],
           ["fecha_hasta", filters.to || orderedDates.at(-1) || ""],
-          ["sensor", filters.sensor],
+          ["sensor", getSensorLabel(filters.sensor)],
           ["confianza", filters.confidence],
           ["focos_detectados", records.length],
           ["dias_con_detecciones", days],
@@ -1000,9 +1018,9 @@
         details.className = "weather-details";
         const risk = weather ? getRiskIndex(weather) : null;
         const items = [
-          [filters.sensor === "all" ? "Puntos MODIS + VIIRS" : `Puntos ${filters.sensor}`, hasViirsCoverage
+          [`Puntos ${getSensorLabel(filters.sensor)}`, hasViirsCoverage
             ? count ? `Sí · ${detectionLabel}` : "No se registraron detecciones en los datos"
-            : `Sin cobertura ${filters.sensor === "all" ? "MODIS o VIIRS" : filters.sensor} para esta fecha; solo contexto meteorológico`],
+            : `Sin cobertura ${getSensorLabel(filters.sensor)} para esta fecha; solo contexto meteorológico`],
           ["Temperatura media / máxima / mínima", weather
             ? `${formatWeatherValue(weather.temperatureMeanC, "°C")} / ${formatWeatherValue(weather.temperatureMaxC, "°C")} / ${formatWeatherValue(weather.temperatureMinC, "°C")}`
             : unavailableWeather],
@@ -1109,7 +1127,7 @@
           const heading = document.createElement("strong");
           heading.textContent = "Fechas seleccionadas";
           const details = document.createElement("span");
-          details.textContent = ` · ${formatCount(records.length)} registros en ${days} días con detecciones; sensor: ${filters.sensor === "all" ? "MODIS + VIIRS" : filters.sensor}.`;
+          details.textContent = ` · ${formatCount(records.length)} registros en ${days} días con detecciones; sensor: ${getSensorLabel(filters.sensor)}.`;
           const caveat = document.createElement("span");
           caveat.textContent = " El rango personalizado resume la actividad y no calcula una anomalía ni una alerta comparativa.";
           activityWatch.append(banner, heading, details, caveat);
@@ -1187,7 +1205,7 @@
 
         const description = document.createElement("span");
         const referenceText = referenceYears.length ? `promedio de las mismas fechas en ${referenceYears.join(", ")}` : "sin años comparables con cobertura VIIRS";
-        description.textContent = ` · ${formatCount(currentCount)} detecciones ${filters.sensor === "all" ? "MODIS + VIIRS" : filters.sensor} entre ${startDate} y ${latestDate} (${currentRate}/día en ${currentCoveredDays} días cubiertos); referencia: ${baselinePerDay ? `${baselineRate}/día, ${referenceText}` : referenceText}. ${currentDays} días con detecciones en el intervalo. `;
+        description.textContent = ` · ${formatCount(currentCount)} detecciones ${getSensorLabel(filters.sensor)} entre ${startDate} y ${latestDate} (${currentRate}/día en ${currentCoveredDays} días cubiertos); referencia: ${baselinePerDay ? `${baselineRate}/día, ${referenceText}` : referenceText}. ${currentDays} días con detecciones en el intervalo. `;
         const coverage = document.createElement("span");
         const latestLabel = new Date(`${coverageEnd}T00:00:00Z`).toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
         const sourceThrough = yearCoverage.data_through;
@@ -1262,7 +1280,7 @@
         const temperatureIntensity = (temperature) => temperature < 22 ? 0 : temperature < 24 ? 1 : temperature < 26 ? 2 : 3;
         const legend = document.getElementById("calendar-legend");
         if (hasViirsCoverage) {
-          const activeSensorLabel = filters.sensor === "all" ? "MODIS y VIIRS" : filters.sensor;
+          const activeSensorLabel = getSensorLabel(filters.sensor);
           legend.setAttribute("aria-label", hasPartialViirsCoverage
             ? `Intensidad ${activeSensorLabel} en fechas cubiertas y temperatura en fechas sin cobertura`
             : `Intensidad de detecciones ${activeSensorLabel}`);
@@ -1272,7 +1290,7 @@
             return swatch;
           });
           legend.replaceChildren(
-            document.createTextNode(hasPartialViirsCoverage ? `${filters.sensor === "all" ? "MODIS + VIIRS" : filters.sensor}: menos ` : "Menos "),
+            document.createTextNode(hasPartialViirsCoverage ? `${getSensorLabel(filters.sensor)}: menos ` : "Menos "),
             ...swatches(colors),
             document.createTextNode(hasPartialViirsCoverage ? " más · Clima: <22 °C " : " Más "),
             ...(hasPartialViirsCoverage ? swatches(climateColors) : []),
@@ -1331,18 +1349,18 @@
             const weatherText = getWeatherDescription(date);
             if (dateHasViirsCoverage) {
               cell.style.backgroundColor = colors[intensity];
-              cell.title = `${date}: ${formatCount(count)} focos ${filters.sensor === "all" ? "MODIS + VIIRS" : filters.sensor}; ${weatherText}`;
+              cell.title = `${date}: ${formatCount(count)} focos ${getSensorLabel(filters.sensor)}; ${weatherText}`;
             } else {
               const temperature = weather.temperatureMeanC;
               cell.style.backgroundColor = Number.isFinite(temperature)
                 ? climateColors[temperatureIntensity(temperature)]
                 : "#46515c";
-              cell.title = `${date}: sin cobertura ${filters.sensor === "all" ? "MODIS o VIIRS" : filters.sensor}; temperatura media ${formatWeatherValue(temperature, "°C")}; ${weatherText}`;
+              cell.title = `${date}: sin cobertura ${getSensorLabel(filters.sensor)}; temperatura media ${formatWeatherValue(temperature, "°C")}; ${weatherText}`;
             }
             cell.setAttribute("role", "gridcell");
             cell.setAttribute("aria-label", dateHasViirsCoverage
-              ? `${date}, ${formatCount(count)} focos ${filters.sensor === "all" ? "MODIS y VIIRS" : filters.sensor}; ${weatherText}`
-              : `${date}, sin cobertura ${filters.sensor === "all" ? "MODIS o VIIRS" : filters.sensor}; temperatura media ${formatWeatherValue(weather.temperatureMeanC, "°C")}; ${weatherText}`);
+              ? `${date}, ${formatCount(count)} focos ${getSensorLabel(filters.sensor)}; ${weatherText}`
+              : `${date}, sin cobertura ${getSensorLabel(filters.sensor)}; temperatura media ${formatWeatherValue(weather.temperatureMeanC, "°C")}; ${weatherText}`);
             cell.addEventListener("click", () => {
               filters.year = calendarYear;
               filters.month = monthNumber;
@@ -1360,7 +1378,7 @@
         const partial = calendarYear === "2026" ? ` · archivos MODIS + VIIRS disponibles hasta ${dataset.coverage[calendarYear].data_through || dataset.coverage[calendarYear].to}` : "";
         const climateStatus = weatherLoadError ? " · clima no disponible" : weatherDataset ? "" : " · cargando clima";
         calendarSummary.textContent = hasViirsCoverage
-          ? `Actividad diaria ${calendarYear}${hasPartialViirsCoverage ? ` · ${filters.sensor === "all" ? "sensores" : filters.sensor} solo en fechas con cobertura; otros días muestran temperatura` : ""}${filters.confidence === "all" ? "" : ` · confianza ${confidenceNames[filters.confidence]}`}${areaPolygon ? " · área dibujada" : ""}${partial}${climateStatus}. Pulsa un día para filtrar el mapa y ver el resumen del día.`
+          ? `Actividad diaria ${calendarYear}${hasPartialViirsCoverage ? ` · ${getSensorLabel(filters.sensor)} solo en fechas con cobertura; otros días muestran temperatura` : ""}${filters.confidence === "all" ? "" : ` · confianza ${confidenceNames[filters.confidence]}`}${areaPolygon ? " · área dibujada" : ""}${partial}${climateStatus}. Pulsa un día para filtrar el mapa y ver el resumen del día.`
           : hasClimateCoverage
             ? `Clima diario ${calendarYear}: el color muestra temperatura media; no hay cobertura del sensor seleccionado. Pulsa un día para consultar sus variables.`
             : `No hay datos meteorológicos disponibles para ${calendarYear}.`;
@@ -1494,7 +1512,7 @@
                       const coveredDays = context.dataset.coverageDays[monthIndex];
                       return coveredDays
                         ? `${year}: ${formatCount(context.dataset.rawCounts[monthIndex])} detecciones en ${coveredDays} días (${context.parsed.y.toFixed(1)} por día)`
-                        : `${year}: sin cobertura ${filters.sensor === "all" ? "MODIS/VIIRS" : filters.sensor}`;
+                        : `${year}: sin cobertura ${getSensorLabel(filters.sensor)}`;
                     },
                   },
                 },
@@ -1511,13 +1529,13 @@
         }
 
         const alerts = [];
-        const comparisonYears = ["2024", "2025"].filter((year) => Object.prototype.hasOwnProperty.call(monthlyRates, year));
-        const currentYear = "2026";
+        const currentYear = getModisYear(filters.sensor) || "2026";
+        const comparisonYears = ["2024", "2025"].filter((year) => year !== currentYear && Object.prototype.hasOwnProperty.call(monthlyRates, year));
         if (filters.from || filters.to) {
           alerts.push("Intervalo personalizado: revisa la serie mensual; no se calcula una anomalía histórica para este rango.");
         } else if (filters.sensor === "all") {
           alerts.push("El análisis combinado MODIS + VIIRS no se compara entre sensores porque no existe calibración intersensor.");
-        } else if (filters.sensor === "MODIS" && !comparisonYears.length) {
+        } else if (getSensorSource(filters.sensor) === "MODIS" && !comparisonYears.length) {
           alerts.push("No hay años MODIS históricos en este filtro para establecer una referencia.");
         } else if (!Object.prototype.hasOwnProperty.call(monthlyRates, currentYear)) {
           const latestYear = availableYears.at(-1);
@@ -1579,7 +1597,7 @@
           ? `${filters.from || "inicio"} – ${filters.to || "actualidad"}`
           : `${filters.year === "all" ? `${rangeStart}–${rangeEnd}` : filters.year}${filters.month ? ` · mes ${Number(filters.month)}` : ""}`);
         const confidence = filters.confidence === "all" ? "todas las confianzas" : `confianza ${confidenceNames[filters.confidence]}`;
-        const sensorLabel = filters.sensor === "all" ? "MODIS + VIIRS" : filters.sensor;
+        const sensorLabel = getSensorLabel(filters.sensor);
         const coveragePeriods = filters.year === "all" ? [] : getCoveragePeriods(filters.year);
         const coverageNote = filters.year !== "all" && coveragePeriods.length
           && (coveragePeriods.length !== 1
@@ -1605,7 +1623,17 @@
         control.addEventListener("change", () => {
           const previousYear = filters.year;
           const previousMonth = filters.month;
-          const dateSelectorChanged = control === filterYear || control === filterMonth;
+          const selectedModisYear = getModisYear(filterSensor.value);
+          const dateSelectorChanged = control === filterYear || control === filterMonth || control === filterSensor;
+          if (control === filterSensor && selectedModisYear) {
+            filterYear.value = selectedModisYear;
+            calendarYearSelect.value = selectedModisYear;
+            filterMonth.value = "";
+          } else if (control === filterYear && filterYear.value !== "all" && selectedModisYear) {
+            filterSensor.value = `MODIS-${filterYear.value}`;
+          } else if (control === filterYear && filterYear.value === "all" && selectedModisYear) {
+            filterSensor.value = "all";
+          }
           filters.year = filterYear.value;
           filters.month = filterMonth.value;
           filters.confidence = filterConfidence.value;
@@ -1649,6 +1677,10 @@
       calendarYearSelect.addEventListener("change", () => {
         const previousYear = filters.year;
         filters.year = calendarYearSelect.value;
+        if (getModisYear(filters.sensor)) {
+          filters.sensor = `MODIS-${filters.year}`;
+          filterSensor.value = filters.sensor;
+        }
         filters.month = "";
         filters.from = "";
         filters.to = "";
