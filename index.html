@@ -629,9 +629,7 @@
             <label class="filter-field" for="filter-sensor">Sensor
               <select id="filter-sensor">
                 <option value="VIIRS" selected>VIIRS (serie histórica)</option>
-                <optgroup label="MODIS por año" data-modis-options>
-                  <option value="MODIS-2026">MODIS · 2026</option>
-                </optgroup>
+                <option value="MODIS-2026" data-modis-year="2026">MODIS · 2026</option>
                 <option value="all">Todos</option>
               </select>
             </label>
@@ -772,16 +770,21 @@
       const years = ["2021", "2022", "2023", "2024", "2025", "2026"];
       const confidenceNames = { l: "baja", n: "nominal", h: "alta" };
       const updateModisSensorOptions = () => {
-        const group = filterSensor.querySelector("optgroup[data-modis-options]");
-        if (!group) return;
+        const selectedValue = filterSensor.value;
         const selectedYear = filterYear.value;
         const visibleYears = selectedYear === "all" ? years : years.filter((year) => year === selectedYear);
-        group.replaceChildren(...visibleYears.map((year) => {
+        filterSensor.querySelectorAll("option[data-modis-year]").forEach((option) => option.remove());
+        const allOption = filterSensor.querySelector('option[value="all"]');
+        visibleYears.forEach((year) => {
           const option = document.createElement("option");
           option.value = `MODIS-${year}`;
+          option.dataset.modisYear = year;
           option.textContent = `MODIS · ${year}`;
-          return option;
-        }));
+          filterSensor.insertBefore(option, allOption);
+        });
+        if ([...filterSensor.options].some((option) => option.value === selectedValue)) {
+          filterSensor.value = selectedValue;
+        }
       };
       updateModisSensorOptions();
       const getModisYear = (sensor) => /^MODIS-202[1-6]$/.test(sensor) ? sensor.slice(-4) : null;
