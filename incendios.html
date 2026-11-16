@@ -243664,7 +243664,10 @@
 
     const years = ["2021", "2022", "2023", "2024", "2025", "2026"];
     const yearLabels = Object.fromEntries(years.map((year) => [year, year]));
-    const satelliteNames = { N20: "NOAA-20 / JPSS-1", N21: "NOAA-21", SNPP: "Suomi-NPP" };
+    const satelliteNames = {
+        N20: "NOAA-20 / JPSS-1", N21: "NOAA-21", SNPP: "Suomi-NPP",
+        Terra: "Terra", Aqua: "Aqua",
+    };
     const confidenceLabels = { l: "Baja (l)", n: "Nominal (n)", h: "Alta (h)" };
     const pointLayers = {};
     const densityLayers = {};
@@ -243672,7 +243675,7 @@
     const drawnItems = L.featureGroup().addTo(viirsMap);
     let drawnLayer = null;
     let recordsByYear = null;
-    let filters = { year: "2026", month: "", date: "", confidence: "all", polygon: null };
+    let filters = { year: "2026", month: "", date: "", confidence: "all", sensor: "VIIRS", from: "", to: "", polygon: null };
     let lastYearFilter = filters.year;
 
     const statusControl = L.control({ position: "bottomleft" });
@@ -243716,7 +243719,10 @@
         const date = record[2];
         return (filters.year === "all" || date.slice(0, 4) === filters.year)
             && (!filters.month || date.slice(5, 7) === filters.month)
+            && (!filters.from || date >= filters.from)
+            && (!filters.to || date <= filters.to)
             && (!filters.date || date === filters.date)
+            && (filters.sensor === "all" || record[10] === filters.sensor)
             && (filters.confidence === "all" || record[5] === filters.confidence)
             && pointInPolygon(record[0], record[1], filters.polygon);
     };
@@ -243724,8 +243730,8 @@
     years.forEach((year) => {
         pointLayers[year] = L.featureGroup();
         densityLayers[year] = L.heatLayer([], { radius: 15, minOpacity: 0.3 });
-        layerControl.addOverlay(pointLayers[year], `Detecciones VIIRS \u00b7 San Mart\u00edn \u00b7 ${yearLabels[year]}`);
-        layerControl.addOverlay(densityLayers[year], `Densidad VIIRS \u00b7 San Mart\u00edn \u00b7 ${year}`);
+        layerControl.addOverlay(pointLayers[year], `Focos MODIS + VIIRS \u00b7 San Mart\u00edn \u00b7 ${yearLabels[year]}`);
+        layerControl.addOverlay(densityLayers[year], `Densidad MODIS + VIIRS \u00b7 San Mart\u00edn \u00b7 ${year}`);
     });
     pointLayers["2026"].addTo(viirsMap);
 
@@ -243734,12 +243740,16 @@
         const localityDetails = `<br><strong>Localidad m\u00e1s cercana:</strong> ${locality ? `${escapeText(locality)}${Number.isFinite(distance) ? ` (${distance.toFixed(1)} km)` : ""}` : "No disponible en los datos"}`
             + `<br><strong>Provincia:</strong> ${formatProvince(province) || "No identificada"}`;
         const timeDetails = time ? `<br><strong>Hora UTC:</strong> ${escapeText(String(time).padStart(4, "0").replace(/^(\d{2})(\d{2})$/, "$1:$2"))}` : "";
-        return `<strong>Sat\u00e9lite:</strong> ${satelliteNames[satellite]}`
+        const sensor = record[10] || "VIIRS";
+        const confidenceText = sensor === "MODIS"
+            ? `Confianza MODIS: ${Number.isFinite(record[11]) ? `${record[11]} / 100 (${confidenceLabels[confidence] || "sin clase"})` : "No informada"}`
+            : `Confianza VIIRS: ${confidenceLabels[confidence] || confidence || "No informada"}`;
+        return `<strong>Sensor:</strong> ${sensor}<br><strong>Sat\u00e9lite:</strong> ${satelliteNames[satellite] || satellite}`
             + localityDetails
             + `<br><strong>Coordenadas:</strong> ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
             + `<br><strong>Fecha:</strong> ${escapeText(date)}${timeDetails}`
             + `<br><strong>FRP:</strong> ${Number.isFinite(frp) ? `${frp.toFixed(2)} MW` : "No disponible"}`
-            + `<br><strong>Confianza VIIRS:</strong> ${escapeText(confidenceLabels[confidence] || confidence || "No informada")}`;
+            + `<br><strong>${escapeText(confidenceText)}</strong>`;
     };
     const renderLocationTooltip = (record) => {
         const [, , , , , , , locality, distance, province] = record;
@@ -243790,8 +243800,11 @@
             pointLayers["2026"].addTo(viirsMap);
         }
         lastYearFilter = filters.year;
-        const period = filters.date || `${filters.year === "all" ? "2021\u20132026" : filters.year}${filters.month ? ` \u00b7 mes ${Number(filters.month)}` : ""}`;
-        setStatus(`${matchingCount.toLocaleString("es-PE")} detecciones coinciden con ${period}${filters.polygon ? " y el \u00e1rea dibujada" : ""}.`);
+        const period = filters.date || (filters.from || filters.to
+            ? `${filters.from || "inicio"} \u2013 ${filters.to || "actualidad"}`
+            : `${filters.year === "all" ? "2021\u20132026" : filters.year}${filters.month ? ` \u00b7 mes ${Number(filters.month)}` : ""}`);
+        const sourceLabel = filters.sensor === "all" ? "MODIS + VIIRS" : filters.sensor;
+        setStatus(`${matchingCount.toLocaleString("es-PE")} focos ${sourceLabel} coinciden con ${period}${filters.polygon ? " y el \u00e1rea dibujada" : ""}.`);
     };
     const drawPolygon = L.Draw && L.Draw.Polygon
         ? new L.Draw.Polygon(viirsMap, {
@@ -243832,30 +243845,34 @@
                     if (!Array.isArray(records) || records.length !== data.coverage[year].count) {
                         throw new Error(`Los registros de ${year} estan incompletos.`);
                     }
-                    if (records.some((record) => !Array.isArray(record) || record.length !== 10
+                    if (records.some((record) => !Array.isArray(record) || record.length !== 12
                         || !Number.isFinite(record[0]) || !Number.isFinite(record[1])
-                        || typeof record[2] !== "string" || !satelliteNames[record[6]])) {
+                        || typeof record[2] !== "string" || !satelliteNames[record[6]]
+                        || !["MODIS", "VIIRS"].includes(record[10]))) {
                         throw new Error(`Se encontraron registros invalidos en ${year}.`);
                     }
                     yearLabels[year] = `${year} (${data.coverage[year].count.toLocaleString("es-PE")})`;
                     layerControl.removeLayer(pointLayers[year]);
-                    layerControl.addOverlay(pointLayers[year], `Detecciones VIIRS \u00b7 San Mart\u00edn \u00b7 ${yearLabels[year]}`);
+                    layerControl.addOverlay(pointLayers[year], `Focos MODIS + VIIRS \u00b7 San Mart\u00edn \u00b7 ${yearLabels[year]}`);
                 });
                 recordsByYear = data.records;
                 applyFilters();
                 sendToParent({ type: "viirs:map-status", loaded: true });
             } catch (error) {
-                console.error("No se pudieron preparar las detecciones VIIRS:", error);
+                console.error("No se pudieron preparar los focos MODIS + VIIRS:", error);
                 sendToParent({ type: "viirs:map-status", error: error.message });
-                setStatus("Error al preparar los datos VIIRS; recarga la pagina para volver a intentar.");
+                setStatus("Error al preparar los datos MODIS + VIIRS; recarga la pagina para volver a intentar.");
             }
         } else if (message.type === "viirs:filters") {
             const next = message.filters;
             if (!next || !["all", ...years].includes(next.year)
                 || (next.month && !/^\d{2}$/.test(next.month))
                 || !["all", "l", "n", "h"].includes(next.confidence)
+                || !["all", "MODIS", "VIIRS"].includes(next.sensor || "VIIRS")
+                || (next.from && !/^\d{4}-\d{2}-\d{2}$/.test(next.from))
+                || (next.to && !/^\d{4}-\d{2}-\d{2}$/.test(next.to))
                 || (next.polygon && !isValidPolygon(next.polygon))) return;
-            filters = { ...next, month: next.month || "", date: next.date || "", polygon: next.polygon || null };
+            filters = { ...next, month: next.month || "", date: next.date || "", sensor: next.sensor || "VIIRS", from: next.from || "", to: next.to || "", polygon: next.polygon || null };
             applyFilters();
         } else if (message.type === "viirs:start-draw") {
             if (drawPolygon) drawPolygon.enable();
