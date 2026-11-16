@@ -629,12 +629,7 @@
             <label class="filter-field" for="filter-sensor">Sensor
               <select id="filter-sensor">
                 <option value="VIIRS" selected>VIIRS (serie histórica)</option>
-                <optgroup label="MODIS por año">
-                  <option value="MODIS-2021">MODIS · 2021</option>
-                  <option value="MODIS-2022">MODIS · 2022</option>
-                  <option value="MODIS-2023">MODIS · 2023</option>
-                  <option value="MODIS-2024">MODIS · 2024</option>
-                  <option value="MODIS-2025">MODIS · 2025</option>
+                <optgroup label="MODIS por año" data-modis-options>
                   <option value="MODIS-2026">MODIS · 2026</option>
                 </optgroup>
                 <option value="all">Todos</option>
@@ -776,6 +771,19 @@
       const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
       const years = ["2021", "2022", "2023", "2024", "2025", "2026"];
       const confidenceNames = { l: "baja", n: "nominal", h: "alta" };
+      const updateModisSensorOptions = () => {
+        const group = filterSensor.querySelector("optgroup[data-modis-options]");
+        if (!group) return;
+        const selectedYear = filterYear.value;
+        const visibleYears = selectedYear === "all" ? years : years.filter((year) => year === selectedYear);
+        group.replaceChildren(...visibleYears.map((year) => {
+          const option = document.createElement("option");
+          option.value = `MODIS-${year}`;
+          option.textContent = `MODIS · ${year}`;
+          return option;
+        }));
+      };
+      updateModisSensorOptions();
       const getModisYear = (sensor) => /^MODIS-202[1-6]$/.test(sensor) ? sensor.slice(-4) : null;
       const getSensorSource = (sensor) => getModisYear(sensor) ? "MODIS" : sensor;
       const getSensorLabel = (sensor) => getModisYear(sensor) ? `MODIS ${getModisYear(sensor)}` : sensor === "all" ? "MODIS + VIIRS" : sensor;
@@ -1630,6 +1638,7 @@
             calendarYearSelect.value = selectedModisYear;
             filterMonth.value = "";
           } else if (control === filterYear && filterYear.value !== "all" && selectedModisYear) {
+            updateModisSensorOptions();
             filterSensor.value = `MODIS-${filterYear.value}`;
           } else if (control === filterYear && filterYear.value === "all" && selectedModisYear) {
             filterSensor.value = "all";
@@ -1646,6 +1655,7 @@
           }
           calendarYearSelect.value = filters.year === "all" ? "2026" : filters.year;
           if (selectedDate && (filters.year !== previousYear || filters.month !== previousMonth)) selectedDate = "";
+          updateModisSensorOptions();
           refreshDashboard();
         });
       });
@@ -1664,6 +1674,7 @@
         filterMonth.value = "";
         calendarYearSelect.value = to ? to.slice(0, 4) : from ? from.slice(0, 4) : "2026";
         selectedDate = "";
+        updateModisSensorOptions();
         refreshDashboard();
       };
       [filterFrom, filterTo].forEach((control) => control.addEventListener("change", applyDateRange));
@@ -1677,7 +1688,9 @@
       calendarYearSelect.addEventListener("change", () => {
         const previousYear = filters.year;
         filters.year = calendarYearSelect.value;
+        filterYear.value = filters.year;
         if (getModisYear(filters.sensor)) {
+          updateModisSensorOptions();
           filters.sensor = `MODIS-${filters.year}`;
           filterSensor.value = filters.sensor;
         }
@@ -1686,9 +1699,9 @@
         filters.to = "";
         filterFrom.value = "";
         filterTo.value = "";
-        filterYear.value = filters.year;
         filterMonth.value = "";
         if (selectedDate && filters.year !== previousYear) selectedDate = "";
+        updateModisSensorOptions();
         refreshDashboard();
       });
       clearDayButton.addEventListener("click", () => {
